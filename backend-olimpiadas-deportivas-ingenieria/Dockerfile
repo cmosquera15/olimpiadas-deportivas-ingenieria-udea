@@ -8,6 +8,8 @@ COPY .mvn .mvn
 COPY pom.xml .
 
 # Go offline to cache dependencies (skip tests for speed)
+# Ensure correct line endings and executable bit for mvnw (Windows-friendly)
+RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
 RUN ./mvnw -q -DskipTests dependency:go-offline
 
 # Copy source
@@ -32,6 +34,7 @@ EXPOSE 8080
 
 # JVM tuning (adjust as needed)
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:MinRAMPercentage=50.0"
+ENV PORT=8080
 
 # Enable faster startup & proper entropy source
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT} -Djava.security.egd=file:/dev/./urandom -jar app.jar"]
