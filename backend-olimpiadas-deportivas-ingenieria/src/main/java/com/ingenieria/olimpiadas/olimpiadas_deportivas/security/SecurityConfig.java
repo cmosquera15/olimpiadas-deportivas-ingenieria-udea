@@ -61,6 +61,9 @@ public class SecurityConfig {
                     "/swagger-ui/**"
                 ).permitAll()
 
+                // Health check
+                .requestMatchers("/healthz").permitAll()
+
                                 // Auth
                 .requestMatchers(HttpMethod.POST, "/api/auth/google-login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/completar-perfil").authenticated()

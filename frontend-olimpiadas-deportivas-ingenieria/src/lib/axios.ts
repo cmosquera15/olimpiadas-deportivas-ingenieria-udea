@@ -1,8 +1,12 @@
 import axios from 'axios';
 import { getToken, clearToken } from './auth';
 
+// Compute API base URL. Prefer env, fallback to Render backend.
+const apiRoot = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '')
+  || 'https://olimpiadas-deportivas-ingenieria-udea.onrender.com';
+
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: `${apiRoot}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
