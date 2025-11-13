@@ -15,7 +15,6 @@ import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.EquipoService;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.UsuariosPorEquipoService;
 
 import java.util.List;
-import org.springframework.data.domain.Page;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.usuario.CandidatoJugadorDTO;
 
 @RestController

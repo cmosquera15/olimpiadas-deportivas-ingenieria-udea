@@ -83,9 +83,12 @@ export function AgregarJugador({ equipoId, torneoId, onSuccess }: AgregarJugador
               {jugadoresDisponibles.map((jugador) => (
                 <CommandItem
                   key={jugador.id}
-                  onSelect={() => {
-                    setSelectedUser(jugador);
+                  value={String(jugador.id)}
+                  onSelect={(val) => {
+                    const chosen = jugadoresDisponibles.find(j => String(j.id) === val) || jugador;
+                    setSelectedUser(chosen);
                     setOpen(false);
+                    setSearchText('');
                   }}
                 >
                   <Check
@@ -94,7 +97,7 @@ export function AgregarJugador({ equipoId, torneoId, onSuccess }: AgregarJugador
                       selectedUser?.id === jugador.id ? 'opacity-100' : 'opacity-0'
                     )}
                   />
-                  {jugador.nombre}
+                  <span className="truncate">{jugador.nombre}</span>
                 </CommandItem>
               ))}
             </CommandGroup>

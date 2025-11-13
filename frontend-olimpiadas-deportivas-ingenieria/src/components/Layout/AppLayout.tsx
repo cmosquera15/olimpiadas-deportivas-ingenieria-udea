@@ -110,11 +110,23 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
               {/* Logo swaps based on theme */}
               <Link to="/dashboard" className="flex items-center gap-2">
-                <img
-                  src={isDark ? '/UdeA+simplificado+®-03.png' : '/UdeA+simplificado-01.png'}
-                  alt="Logo Olimpiadas"
-                  className="h-8 w-auto"
-                />
+                {(() => {
+                  const LOGO_LIGHT = '/UdeA+simplificado-01.png';
+                  const LOGO_DARK = '/UdeA+simplificado+%C2%AE-03.png';
+                  const src = isDark ? LOGO_DARK : LOGO_LIGHT;
+                  return (
+                    <img
+                      src={src}
+                      alt="Logo Olimpiadas"
+                      className="h-8 w-auto"
+                      onError={(e) => {
+                        // Fallback gracefully if dark asset fails (e.g., due to encoding on prod)
+                        const target = e.currentTarget as HTMLImageElement;
+                        if (target.src.endsWith(LOGO_DARK)) target.src = LOGO_LIGHT;
+                      }}
+                    />
+                  );
+                })()}
                 <span className="hidden font-semibold sm:inline-block">Olimpiadas Ingeniería</span>
               </Link>
 

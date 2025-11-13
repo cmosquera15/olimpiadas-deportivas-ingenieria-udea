@@ -4,7 +4,7 @@ import { usuariosService, UsuarioUpdatePayload } from '@/services/usuarios.servi
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useCatalogos } from '@/hooks/useCatalogos';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,6 +18,12 @@ export function PerfilUsuario() {
   const { toast } = useToast();
   const { programas, generos, eps, tiposVinculo } = useCatalogos();
   const navigate = useNavigate();
+  // Fetch full usuario from backend for richer profile details
+  const { data: perfilCompleto } = useQuery({
+    queryKey: ['perfil-completo', user?.id],
+    queryFn: () => usuariosService.getUsuarioCompleto(user!.id!),
+    enabled: !!user?.id,
+  });
   const [form, setForm] = React.useState<UsuarioUpdatePayload>(() => ({
     nombre: user?.nombre ?? '',
     documento: undefined,
@@ -27,6 +33,19 @@ export function PerfilUsuario() {
     id_tipo_vinculo: user?.tipoVinculo?.id,
     fotoUrl: user?.fotoUrl ?? '',
   }));
+
+  React.useEffect(() => {
+    if (!perfilCompleto) return;
+    setForm({
+      nombre: perfilCompleto.nombre ?? '',
+      documento: perfilCompleto.documento,
+      id_programa_academico: perfilCompleto.programaAcademico?.id,
+      id_genero: perfilCompleto.genero?.id,
+      id_eps: perfilCompleto.eps?.id,
+      id_tipo_vinculo: perfilCompleto.tipoVinculo?.id,
+      fotoUrl: perfilCompleto.fotoUrl ?? user?.fotoUrl ?? '',
+    });
+  }, [perfilCompleto, user?.fotoUrl]);
 
   const mutation = useMutation({
     mutationFn: (payload: UsuarioUpdatePayload) => usuariosService.updatePerfilSelf(payload),
@@ -110,8 +129,8 @@ export function PerfilUsuario() {
                 <label className="text-xs font-medium">Documento {user?.documento ? '(no editable)' : '(si no existe)'} </label>
                 <Input
                   name="documento"
-                  disabled={!!user?.documento}
-                  value={user?.documento || form.documento || ''}
+                  disabled={!!(perfilCompleto?.documento || user?.documento)}
+                  value={perfilCompleto?.documento || user?.documento || form.documento || ''}
                   onChange={handleChange}
                   placeholder={user?.documento ? 'Ya registrado' : 'Ingresa tu documento'}
                 />

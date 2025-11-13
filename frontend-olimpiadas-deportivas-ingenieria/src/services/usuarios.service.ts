@@ -25,6 +25,11 @@ interface UsuariosFilter extends PageRequest {
 }
 
 export const usuariosService = {
+  getUsuarioCompleto: async (id: number): Promise<Usuario> => {
+    const { data } = await axiosInstance.get<Usuario>(`/usuarios/${id}`);
+    return data;
+  },
+
   getUsuario: async (id: number): Promise<UsuarioListDTO> => {
     const { data } = await axiosInstance.get<UsuarioListDTO>(`/usuarios/${id}`);
     return data;
