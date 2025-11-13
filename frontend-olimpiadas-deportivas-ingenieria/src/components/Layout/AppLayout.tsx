@@ -1,7 +1,7 @@
 import React from 'react';
 import { getAuthorities, getUserRole, getToken } from '@/lib/auth';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, LogOut, Moon, Sun } from 'lucide-react';
+import { Menu, LogOut, Moon, Sun, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { AppSidebar } from './AppSidebar';
@@ -25,6 +25,7 @@ interface AppLayoutProps {
 export const AppLayout = ({ children }: AppLayoutProps) => {
   const { user, clearAuth } = useAuth();
   const navigate = useNavigate();
+  const reglamentoUrl = import.meta.env.VITE_REGLAMENTO_URL as string | undefined;
   const [isDark, setIsDark] = React.useState<boolean>(() => {
     const stored = localStorage.getItem('theme');
     if (stored === 'dark') return true;
@@ -129,6 +130,19 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                 })()}
                 <span className="hidden font-semibold sm:inline-block">Olimpiadas Ingeniería</span>
               </Link>
+
+              {/* Reglamento link (if configured) */}
+              {reglamentoUrl && (
+                <a
+                  href={reglamentoUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+                >
+                  <FileText className="h-4 w-4" />
+                  Reglamento
+                </a>
+              )}
 
               {/* Theme Toggle */}
               <Button
