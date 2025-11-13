@@ -54,8 +54,16 @@ public class AdminUsuarioController {
     }
 
     @PutMapping("/{id}/perfil")
-    public ResponseEntity<Usuario> updatePerfilAdmin(@PathVariable Integer id,
+    public ResponseEntity<UsuarioListDTO> updatePerfilAdmin(@PathVariable Integer id,
                                                      @RequestBody UsuarioUpdateDTO req) {
-        return ResponseEntity.ok(usuarioService.editarPerfilAdmin(id, req));
+        Usuario u = usuarioService.editarPerfilAdmin(id, req);
+        UsuarioListDTO dto = new UsuarioListDTO(
+                u.getId(),
+                u.getNombre(),
+                u.getCorreo(),
+                u.getRol() != null ? u.getRol().getNombre() : null,
+                u.getHabilitado()
+        );
+        return ResponseEntity.ok(dto);
     }
 }

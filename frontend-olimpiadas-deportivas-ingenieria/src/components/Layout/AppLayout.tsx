@@ -113,7 +113,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
               <Link to="/dashboard" className="flex items-center gap-2">
                 {(() => {
                   const LOGO_LIGHT = '/UdeA+simplificado-01.png';
-                  const LOGO_DARK = '/UdeA+simplificado+%C2%AE-03.png';
+                  const LOGO_DARK = '/UdeA+simplificado-03.png';
                   const src = isDark ? LOGO_DARK : LOGO_LIGHT;
                   return (
                     <img

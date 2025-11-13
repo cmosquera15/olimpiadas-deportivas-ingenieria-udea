@@ -137,13 +137,18 @@ export default function DetalleTorneo() {
           <Card>
             <CardHeader>
               <CardTitle>Grupos del Torneo</CardTitle>
+              <CardDescription>Haz clic en un grupo para ver su tabla de posiciones</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
                 {grupos.map((grupo) => (
-                  <div key={grupo.id} className="rounded-lg border p-3">
+                  <button
+                    key={grupo.id}
+                    onClick={() => navigate(`/posiciones?torneoId=${torneo.id}&grupoId=${grupo.id}`)}
+                    className="rounded-lg border p-3 text-left transition-all hover:bg-accent hover:border-primary cursor-pointer"
+                  >
                     <p className="font-medium">{grupo.nombre}</p>
-                  </div>
+                  </button>
                 ))}
               </div>
             </CardContent>

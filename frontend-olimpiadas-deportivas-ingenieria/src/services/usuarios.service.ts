@@ -35,6 +35,13 @@ export const usuariosService = {
     return data;
   },
 
+  getArbitros: async (): Promise<UsuarioListDTO[]> => {
+    const { data } = await axiosInstance.get<PageResponse<UsuarioListDTO>>('/admin/usuarios', {
+      params: { search: '', page: 0, size: 1000 },
+    });
+    return data.content.filter(u => u.rol === 'ARBITRO');
+  },
+
   getUsuarios: async (filters: UsuariosFilter = {}): Promise<PageResponse<UsuarioListDTO>> => {
     const { data } = await axiosInstance.get<PageResponse<UsuarioListDTO>>('/admin/usuarios', {
       params: filters,
@@ -64,9 +71,9 @@ export const usuariosService = {
     return data as Usuario;
   },
 
-  updatePerfilAdmin: async (id: number, payload: UsuarioUpdatePayload): Promise<Usuario> => {
-    const { data } = await axiosInstance.put<Usuario>(`/admin/usuarios/${id}/perfil`, payload);
-    return data as Usuario;
+  updatePerfilAdmin: async (id: number, payload: UsuarioUpdatePayload): Promise<UsuarioListDTO> => {
+    const { data } = await axiosInstance.put<UsuarioListDTO>(`/admin/usuarios/${id}/perfil`, payload);
+    return data;
   },
 };
 

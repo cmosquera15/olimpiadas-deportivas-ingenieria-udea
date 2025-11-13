@@ -58,8 +58,12 @@ const formSchema = z.object({
   lugarId: z.string({
     required_error: "Debes seleccionar un lugar",
   }),
-  arbitroId: z.string().optional(),
-  faseId: z.string().optional(),
+  arbitroId: z.string({
+    required_error: "Debes seleccionar un árbitro",
+  }),
+  faseId: z.string({
+    required_error: "Debes seleccionar una fase",
+  }),
   grupoId: z.string().optional(),
   jornadaId: z.string().optional(),
   observaciones: z.string().optional(),
@@ -91,7 +95,10 @@ export function CrearPartidoForm({ torneoId, onCreated }: CrearPartidoFormProps)
 
   const { data: arbitros } = useQuery({
     queryKey: ['arbitros'],
-    queryFn: () => [],
+    queryFn: async () => {
+      const { usuariosService } = await import('@/services/usuarios.service');
+      return usuariosService.getArbitros();
+    },
   });
 
   const { data: fases } = useQuery({
@@ -119,14 +126,14 @@ export function CrearPartidoForm({ torneoId, onCreated }: CrearPartidoFormProps)
     mutationFn: (values: FormValues) => {
       const fecha = format(values.fecha, 'yyyy-MM-dd');
       return partidosService.createPartido({
-        torneoId,
+        id_torneo: torneoId,
         fecha,
         hora: values.hora,
-        lugarId: Number(values.lugarId),
-        arbitroId: values.arbitroId ? Number(values.arbitroId) : undefined,
-        faseId: values.faseId ? Number(values.faseId) : undefined,
-        grupoId: values.grupoId ? Number(values.grupoId) : undefined,
-        jornadaId: values.jornadaId ? Number(values.jornadaId) : undefined,
+        id_lugar: Number(values.lugarId),
+        id_usuario_arbitro: Number(values.arbitroId),
+        id_fase: Number(values.faseId),
+        id_grupo: values.grupoId ? Number(values.grupoId) : undefined,
+        id_jornada: values.jornadaId ? Number(values.jornadaId) : undefined,
         observaciones: values.observaciones || undefined,
       });
     },
@@ -151,15 +158,15 @@ export function CrearPartidoForm({ torneoId, onCreated }: CrearPartidoFormProps)
     },
   });
 
-  const validateConflicts = (fecha: Date, hora: string, lugarId: string) => {
-    if (!partidos?.content || !fecha || !hora || !lugarId) return true;
+  const validateConflicts = (fecha: Date, hora: string, lugarId: string, arbitroId?: string) => {
+    if (!partidos?.content || !fecha || !hora || !lugarId) return { valid: true };
 
     const fechaHora = parseISO(`${format(fecha, 'yyyy-MM-dd')}T${hora}`);
 
     const offset = getTimezoneOffset(TIMEZONE, fechaHora);
     const fechaHoraLocal = new Date(fechaHora.getTime() - offset);
 
-    const conflicto = partidos.content.find(partido => {
+    const conflictoLugar = partidos.content.find(partido => {
       const partidoFechaHora = parseISO(`${partido.fecha}T${partido.hora}`);
       const partidoFechaHoraLocal = new Date(partidoFechaHora.getTime() - offset);
       
@@ -169,15 +176,29 @@ export function CrearPartidoForm({ torneoId, onCreated }: CrearPartidoFormProps)
       );
     });
 
-    return !conflicto;
+    const conflictoArbitro = arbitroId ? partidos.content.find(partido => {
+      const partidoFechaHora = parseISO(`${partido.fecha}T${partido.hora}`);
+      const partidoFechaHoraLocal = new Date(partidoFechaHora.getTime() - offset);
+      
+      return (
+        partido.arbitro?.id === Number(arbitroId) &&
+        partidoFechaHoraLocal.getTime() === fechaHoraLocal.getTime()
+      );
+    }) : null;
+
+    if (conflictoLugar) return { valid: false, message: 'Ya existe un partido programado en este lugar y horario' };
+    if (conflictoArbitro) return { valid: false, message: 'El árbitro ya tiene un partido asignado en este horario' };
+    
+    return { valid: true };
   };
 
   const onSubmit = (values: FormValues) => {
-    if (!validateConflicts(values.fecha, values.hora, values.lugarId)) {
+    const validation = validateConflicts(values.fecha, values.hora, values.lugarId, values.arbitroId);
+    if (!validation.valid) {
       toast({
         variant: 'destructive',
         title: 'Conflicto detectado',
-        description: 'Ya existe un partido programado en este lugar y horario',
+        description: validation.message,
       });
       return;
     }
@@ -281,10 +302,10 @@ export function CrearPartidoForm({ torneoId, onCreated }: CrearPartidoFormProps)
             name="arbitroId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Árbitro (Opcional)</FormLabel>
+                <FormLabel>Árbitro *</FormLabel>
                 <Select 
-                  onValueChange={(val) => field.onChange(val === 'none' ? '' : val)} 
-                  value={field.value || 'none'}
+                  onValueChange={field.onChange} 
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -292,9 +313,8 @@ export function CrearPartidoForm({ torneoId, onCreated }: CrearPartidoFormProps)
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="none">Sin árbitro</SelectItem>
                     {arbitros?.map((arbitro) => (
-                      <SelectItem key={arbitro.id} value={arbitro.id.toString()}>
+                      <SelectItem key={arbitro.id} value={arbitro.id!.toString()}>
                         {arbitro.nombre}
                       </SelectItem>
                     ))}
@@ -313,10 +333,10 @@ export function CrearPartidoForm({ torneoId, onCreated }: CrearPartidoFormProps)
             name="faseId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fase (Opcional)</FormLabel>
+                <FormLabel>Fase *</FormLabel>
                 <Select 
-                  onValueChange={(val) => field.onChange(val === 'none' ? '' : val)} 
-                  value={field.value || 'none'}
+                  onValueChange={field.onChange} 
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -324,7 +344,6 @@ export function CrearPartidoForm({ torneoId, onCreated }: CrearPartidoFormProps)
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="none">Sin fase</SelectItem>
                     {fases?.map((fase) => (
                       <SelectItem key={fase.id} value={fase.id.toString()}>
                         {fase.nombre}

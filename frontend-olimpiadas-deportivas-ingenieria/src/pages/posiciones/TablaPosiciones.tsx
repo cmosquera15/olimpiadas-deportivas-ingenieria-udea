@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { posicionesService } from '@/services/posiciones.service';
 import { torneosService } from '@/services/torneos.service';
@@ -23,9 +24,24 @@ import { es } from 'date-fns/locale';
 import type { PageResponse, TorneoListDTO, TablaPosiciones, EquipoPosicionDTO, Partido } from '@/types';
 
 export default function TablaPosiciones() {
-  const [torneoId, setTorneoId] = useState<number | undefined>(undefined);
-  const [grupoId, setGrupoId] = useState<number | undefined>(undefined);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [torneoId, setTorneoId] = useState<number | undefined>(() => {
+    const param = searchParams.get('torneoId');
+    return param ? Number(param) : undefined;
+  });
+  const [grupoId, setGrupoId] = useState<number | undefined>(() => {
+    const param = searchParams.get('grupoId');
+    return param ? Number(param) : undefined;
+  });
   const [fase, setFase] = useState<'grupos' | 'cuartos' | 'semifinal' | 'final'>('grupos');
+
+  // Update URL when torneoId or grupoId changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (torneoId) params.set('torneoId', String(torneoId));
+    if (grupoId) params.set('grupoId', String(grupoId));
+    setSearchParams(params, { replace: true });
+  }, [torneoId, grupoId, setSearchParams]);
 
   const { data: torneos, isLoading: isLoadingTorneos } = useQuery<PageResponse<TorneoListDTO>>({
     queryKey: ['torneos-activos'],

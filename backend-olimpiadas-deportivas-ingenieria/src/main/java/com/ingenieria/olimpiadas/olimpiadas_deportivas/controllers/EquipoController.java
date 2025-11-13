@@ -10,6 +10,7 @@ import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.equipo.EquipoCreateDT
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.equipo.EquipoDetailDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.equipo.EquipoListDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.equipo.EquipoUpdateDTO;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.plantilla.UsuariosPorEquipoDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.models.torneo.UsuariosPorEquipo;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.EquipoService;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.UsuariosPorEquipoService;
@@ -61,9 +62,10 @@ public class EquipoController {
     }
 
     @GetMapping("/{equipoId}/plantilla")
-    public ResponseEntity<List<UsuariosPorEquipo>> listarPlantilla(@PathVariable Integer equipoId,
+    public ResponseEntity<List<UsuariosPorEquipoDTO>> listarPlantilla(@PathVariable Integer equipoId,
                                                                   @RequestParam Integer torneoId) {
-        return ResponseEntity.ok(plantillaService.listarPorEquipo(equipoId, torneoId));
+        List<UsuariosPorEquipo> plantilla = plantillaService.listarPorEquipo(equipoId, torneoId);
+        return ResponseEntity.ok(plantilla.stream().map(UsuariosPorEquipoDTO::from).toList());
     }
 
     @PostMapping("/{equipoId}/plantilla")

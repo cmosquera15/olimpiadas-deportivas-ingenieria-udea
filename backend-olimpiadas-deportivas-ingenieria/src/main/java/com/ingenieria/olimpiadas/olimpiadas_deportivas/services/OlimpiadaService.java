@@ -131,8 +131,8 @@ public class OlimpiadaService {
         
         Olimpiada olimpiadaActualizada = olimpiadaRepository.save(olimpiada);
         
-        // Get associated tournaments
-        List<Torneo> torneos = torneoRepository.findByOlimpiadaIdOrderByNombreAsc(olimpiadaActualizada.getId());
+        // Get associated tournaments (use method without activo filter to allow editing inactive olimpiadas)
+        List<Torneo> torneos = torneoRepository.findByOlimpiadaIdOrderByNombreAscIncludingInactive(olimpiadaActualizada.getId());
         List<TorneoSummaryDTO> torneoSummaries = torneos.stream()
                 .map(t -> new TorneoSummaryDTO(
                         t.getId(),

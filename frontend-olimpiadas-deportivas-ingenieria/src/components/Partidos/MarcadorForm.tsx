@@ -59,6 +59,8 @@ export function MarcadorForm({ partido, onSuccess }: MarcadorFormProps) {
   const mutation = useMutation({
     mutationFn: () =>
       partidosService.actualizarMarcador(partido.id, {
+        equipo1Id: partido.equipoLocal!.id,
+        equipo2Id: partido.equipoVisitante!.id,
         puntosEquipo1: puntosEquipo1 ? Number(puntosEquipo1) : undefined,
         puntosEquipo2: puntosEquipo2 ? Number(puntosEquipo2) : undefined,
         resultadoEquipo1Id: resultadoEquipo1Id ? Number(resultadoEquipo1Id) : undefined,

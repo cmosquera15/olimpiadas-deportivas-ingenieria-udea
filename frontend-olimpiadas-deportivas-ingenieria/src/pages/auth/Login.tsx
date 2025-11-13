@@ -12,7 +12,7 @@ import axios from 'axios';
 import { Usuario } from '@/types';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const LOGO_UDEA_DARK = '/UdeA+simplificado+%C2%AE-03.png';
+const LOGO_UDEA_DARK = '/UdeA+simplificado-03.png';
 const LOGO_UDEA_LIGHT = '/UdeA+simplificado-01.png';
 const LOGO_OLIMPIADAS = '/Logo+Olimpiadas.png';
 

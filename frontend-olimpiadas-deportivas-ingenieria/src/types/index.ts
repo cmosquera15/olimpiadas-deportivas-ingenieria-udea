@@ -174,11 +174,22 @@ export interface Equipo {
 
 export interface UsuarioPorEquipo {
   id: number;
-  equipoId: number;
-  usuarioId: number;
-  torneoId: number;
-  usuario: Usuario;
-  equipo: Equipo;
+  usuario: {
+    id: number;
+    nombre: string;
+    correo?: string;
+    documento?: string;
+    fotoUrl?: string;
+    programaAcademico?: ProgramaAcademico;
+  };
+  equipo: {
+    id: number;
+    nombre: string;
+  };
+  torneo: {
+    id: number;
+    nombre: string;
+  };
 }
 
 // Partido types
@@ -243,12 +254,12 @@ export interface PartidoDetail {
 }
 
 export interface PartidoCreateRequest {
-  torneoId: number;
-  faseId?: number;
-  grupoId?: number;
-  jornadaId?: number;
-  lugarId: number;
-  arbitroId?: number;
+  id_torneo: number;
+  id_fase: number;
+  id_grupo?: number;
+  id_jornada?: number;
+  id_lugar: number;
+  id_usuario_arbitro: number;
   fecha: string;
   hora: string;
   observaciones?: string;
@@ -260,6 +271,8 @@ export interface AsignarEquiposRequest {
 }
 
 export interface ActualizarMarcadorRequest {
+  equipo1Id: number;
+  equipo2Id: number;
   puntosEquipo1?: number;
   puntosEquipo2?: number;
   resultadoEquipo1Id?: number;

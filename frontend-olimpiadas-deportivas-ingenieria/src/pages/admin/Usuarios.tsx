@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { usuariosService, UsuarioListDTO, UsuarioCreateRequest, UsuarioUpdatePayload } from '@/services/usuarios.service';
@@ -35,7 +35,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Search, Loader2, UserX } from 'lucide-react';
-import { PageResponse, ProgramaAcademico, Genero, EPS, TipoVinculo } from '@/types';
+import { PageResponse, ProgramaAcademico, Genero, EPS, TipoVinculo, Usuario } from '@/types';
 import { catalogoService } from '@/services/catalogo.service';
 
 interface UpdateRolMutation {
@@ -77,6 +77,27 @@ export default function Usuarios() {
 
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<UsuarioCreateRequest>({ nombre: '', correo: '', rolNombre: 'JUGADOR' });
+
+  // Load full user details when editing to prefill fields from DB
+  const { data: detalle, isLoading: detalleLoading } = useQuery<Usuario>({
+    queryKey: ['usuario-admin-detalle', editUserId],
+    queryFn: () => usuariosService.getUsuarioCompleto(editUserId!),
+    enabled: !!editUserId && editOpen,
+  });
+
+  useEffect(() => {
+    if (detalle) {
+      setEditForm({
+        nombre: detalle.nombre || undefined,
+        documento: detalle.documento || undefined,
+        id_programa_academico: detalle.programaAcademico?.id,
+        id_genero: detalle.genero?.id,
+        id_eps: detalle.eps?.id,
+        id_tipo_vinculo: detalle.tipoVinculo?.id,
+        fotoUrl: detalle.fotoUrl || undefined,
+      });
+    }
+  }, [detalle]);
 
   if (import.meta.env.DEV) {
     console.log('🔍 Usuarios data:', data);
@@ -378,6 +399,12 @@ export default function Usuarios() {
                                 <DialogTitle>Editar Perfil de {usuario.nombre}</DialogTitle>
                               </DialogHeader>
                               <div className="space-y-4 py-2">
+                                {detalleLoading && (
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Cargando información del usuario...
+                                  </div>
+                                )}
                                 <div className="grid gap-4 md:grid-cols-2">
                                   <div className="space-y-2">
                                     <label className="text-xs font-medium">Nombre</label>
@@ -442,7 +469,7 @@ export default function Usuarios() {
                                 </div>
                                 <div className="flex justify-end gap-2 pt-2">
                                   <Button variant="outline" onClick={() => { setEditOpen(false); setEditUserId(null); setEditForm({}); }}>Cancelar</Button>
-                                  <Button disabled={updatePerfilAdminMutation.isPending} onClick={() => updatePerfilAdminMutation.mutate()}>
+                                  <Button disabled={updatePerfilAdminMutation.isPending || detalleLoading} onClick={() => updatePerfilAdminMutation.mutate()}>
                                     {updatePerfilAdminMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
                                   </Button>
                                 </div>
