@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { torneosService } from '@/services/torneos.service';
 import { useGrupos, useJornadas } from '@/hooks/useCatalogos';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Guard } from '@/components/ui/Guard';
@@ -81,15 +81,16 @@ export default function DetalleTorneo() {
                 {torneo.deporteNombre}
               </p>
             </div>
-            <Badge variant="secondary">{torneo.olimpiadaNombre}</Badge>
+            <Badge variant="outline">{torneo.olimpiadaNombre}</Badge>
           </div>
         </div>
 
+        <h2 className="sr-only">Resumen del torneo</h2>
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader>
               <Award className="h-8 w-8 text-primary" />
-              <CardTitle>Olimpiada</CardTitle>
+              <div className="text-lg font-semibold leading-none tracking-tight">Olimpiada</div>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{torneo.olimpiadaNombre}</p>
@@ -99,7 +100,7 @@ export default function DetalleTorneo() {
           <Card>
             <CardHeader>
               <Trophy className="h-8 w-8 text-secondary" />
-              <CardTitle>Deporte</CardTitle>
+              <div className="text-lg font-semibold leading-none tracking-tight">Deporte</div>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{torneo.deporteNombre}</p>
@@ -109,7 +110,7 @@ export default function DetalleTorneo() {
           <Card>
             <CardHeader>
               <Users className="h-8 w-8 text-contrast" />
-              <CardTitle>Grupos</CardTitle>
+              <div className="text-lg font-semibold leading-none tracking-tight">Grupos</div>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{grupos?.length || 0}</p>
@@ -120,7 +121,7 @@ export default function DetalleTorneo() {
         {torneo.reglamentoUrl && (
           <Card>
             <CardHeader>
-              <CardTitle>Reglamento</CardTitle>
+              <div className="text-lg font-semibold leading-none tracking-tight">Reglamento</div>
             </CardHeader>
             <CardContent>
               <Button variant="outline" asChild>
@@ -136,7 +137,7 @@ export default function DetalleTorneo() {
         {grupos && grupos.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Grupos del Torneo</CardTitle>
+              <div className="text-lg font-semibold leading-none tracking-tight">Grupos del Torneo</div>
               <CardDescription>Haz clic en un grupo para ver su tabla de posiciones</CardDescription>
             </CardHeader>
             <CardContent>
@@ -161,10 +162,10 @@ export default function DetalleTorneo() {
         >
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-lg font-semibold leading-none tracking-tight">
                 <Zap className="h-5 w-5 text-accent" />
                 Generar Llaves
-              </CardTitle>
+              </div>
               <CardDescription>
                 Genera automáticamente los partidos de eliminación según el reglamento
               </CardDescription>

@@ -270,7 +270,9 @@ export default function TablaPosiciones() {
         {fase === 'grupos' && (
           <Alert>
             <Info className="h-4 w-4" />
-            <AlertTitle>Criterios de Desempate</AlertTitle>
+            <AlertTitle asChild>
+              <span>Criterios de Desempate</span>
+            </AlertTitle>
             <AlertDescription>
               1. Mayor número de puntos (PTS)
               <br />
@@ -423,7 +425,9 @@ export default function TablaPosiciones() {
         {tabla && sortedPosiciones.length > 0 && fase === 'grupos' && (
           <Alert>
             <Info className="h-4 w-4" />
-            <AlertTitle>Fórmula de Juego Limpio (Fair Play)</AlertTitle>
+            <AlertTitle asChild>
+              <span>Fórmula de Juego Limpio (Fair Play)</span>
+            </AlertTitle>
             <AlertDescription>
               Fair Play = Suma de Puntos Negativos / Partidos Jugados
               <br />

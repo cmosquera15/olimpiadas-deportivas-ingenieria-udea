@@ -367,13 +367,13 @@ export default function GestionOlimpiadas() {
                   <div className="flex items-start justify-between">
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <CardTitle className="text-base sm:text-lg md:text-xl truncate">{olimpiada.nombre}</CardTitle>
+                        <div className="text-base sm:text-lg md:text-xl font-semibold truncate">{olimpiada.nombre}</div>
                         {olimpiada.activo ? (
                           <Badge variant="default" className="text-xs">
                             Activa
                           </Badge>
                         ) : (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="outline" className="text-xs">
                             Inactiva
                           </Badge>
                         )}
@@ -393,6 +393,7 @@ export default function GestionOlimpiadas() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        aria-label={`Editar olimpiada ${olimpiada.nombre}`}
                         onClick={() => handleEdit(olimpiada)}
                         className="flex-shrink-0"
                       >

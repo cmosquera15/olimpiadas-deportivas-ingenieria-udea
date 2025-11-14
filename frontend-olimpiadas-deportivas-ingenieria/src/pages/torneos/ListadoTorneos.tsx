@@ -158,7 +158,7 @@ export default function ListadoTorneos() {
                     <div className="flex items-start gap-4">
                       <img src="/Logo+Olimpiadas.png" alt="Logo" className="h-12 w-12 flex-shrink-0 rounded-md border" />
                       <div className="flex-1 min-w-0 space-y-1">
-                        <Badge variant="secondary" className="mb-1 inline-block max-w-full truncate" title={torneo.olimpiadaNombre}>{torneo.olimpiadaNombre}</Badge>
+                        <Badge variant="outline" className="mb-1 inline-block max-w-full truncate" title={torneo.olimpiadaNombre}>{torneo.olimpiadaNombre}</Badge>
                         <CardTitle className="text-lg leading-snug line-clamp-2 break-words hyphens-auto">
                           {torneo.nombre}
                         </CardTitle>

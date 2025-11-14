@@ -122,8 +122,8 @@ export function PerfilUsuario() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-xs font-medium">Nombre</label>
-                <Input name="nombre" value={form.nombre || ''} onChange={handleChange} maxLength={100} />
+                <label htmlFor="perfil-nombre" className="text-xs font-medium">Nombre</label>
+                <Input id="perfil-nombre" name="nombre" value={form.nombre || ''} onChange={handleChange} maxLength={100} />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-medium">Documento {user?.documento ? '(no editable)' : '(si no existe)'} </label>

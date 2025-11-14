@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/Layout/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -58,15 +58,16 @@ export function DetalleEquipo() {
             <h1 className="text-3xl font-bold tracking-tight">{equipo.nombre}</h1>
           </div>
           {(equipo.torneoNombre || equipo.torneo?.nombre) && (
-            <Badge variant="secondary">
+            <Badge variant="outline">
               {equipo.torneoNombre || equipo.torneo?.nombre}
             </Badge>
           )}
         </div>
 
+        <h2 className="sr-only">Detalles del equipo</h2>
         <Card>
           <CardHeader>
-            <CardTitle>Torneo</CardTitle>
+            <div className="text-lg font-semibold leading-none tracking-tight">Torneo</div>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="plantilla">

@@ -52,7 +52,7 @@ export default function DetallePartido() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/partidos')}>
+          <Button variant="ghost" size="icon" aria-label="Volver a la lista de partidos" onClick={() => navigate('/partidos')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1">

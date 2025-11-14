@@ -81,7 +81,7 @@ export default function Dashboard() {
               <Button variant="default" size="sm" className="sm:h-10 sm:px-4">Crear/Ver Olimpiadas</Button>
             </Link>
             <Link to="/equipos">
-              <Button variant="secondary" size="sm" className="sm:h-10 sm:px-4">Gestionar Equipos</Button>
+              <Button variant="default" size="sm" className="sm:h-10 sm:px-4">Gestionar Equipos</Button>
             </Link>
             <Link to="/partidos">
               <Button variant="outline" size="sm" className="sm:h-10 sm:px-4">Programar Partidos</Button>
@@ -89,6 +89,7 @@ export default function Dashboard() {
           </div>
         </div>
 
+        <h2 className="sr-only">Accesos rápidos</h2>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {quickLinks.map((link) => (
             <Link key={link.href} to={link.href}>
@@ -97,7 +98,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between">
                     <link.icon className={`h-6 w-6 sm:h-8 sm:w-8 ${link.color}`} />
                   </div>
-                  <CardTitle className="text-base sm:text-lg">{link.title}</CardTitle>
+                  <div className="text-base sm:text-lg font-semibold">{link.title}</div>
                   <CardDescription className="text-xs sm:text-sm">{link.description}</CardDescription>
                 </CardHeader>
               </Card>
