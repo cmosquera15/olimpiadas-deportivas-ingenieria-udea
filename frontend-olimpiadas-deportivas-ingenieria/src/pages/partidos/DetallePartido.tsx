@@ -39,11 +39,16 @@ export default function DetallePartido() {
       queryClient.invalidateQueries({ queryKey: ['partido', id] });
       queryClient.invalidateQueries({ queryKey: ['posiciones'] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      let description = 'No se pudo actualizar el estado';
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { message?: string } } };
+        description = axiosError.response?.data?.message || description;
+      }
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.message || 'No se pudo actualizar el estado',
+        description,
       });
     },
   });
@@ -69,8 +74,6 @@ export default function DetallePartido() {
       </AppLayout>
     );
   }
-
-  const canEdit = hasPermission('Partidos_Editar');
 
   const isFinished = partido?.equipoLocalPuntos !== null && partido?.equipoVisitantePuntos !== null;
   const hasEquipos = partido?.equipoLocalId && partido?.equipoVisitanteId;
