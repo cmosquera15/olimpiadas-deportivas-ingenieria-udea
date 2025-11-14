@@ -11,6 +11,7 @@ import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.AsignarEquipo
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.MarcadorUpdateDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.PartidoCreateDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.PartidoDetailDTO;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.PartidoEstadoUpdateDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.PartidoListViewDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.PartidoUpdateDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.PartidoService;
@@ -69,5 +70,12 @@ public class PartidoController {
     public ResponseEntity<PartidoDetailDTO> actualizarMarcador(@PathVariable Integer id,
                                                                @Valid @RequestBody MarcadorUpdateDTO req) {
         return ResponseEntity.ok(svc.actualizarMarcador(id, req));
+    }
+
+    @PutMapping("/{id}/estado")
+    @PreAuthorize("hasAuthority('Partidos_Editar')")
+    public ResponseEntity<PartidoDetailDTO> actualizarEstado(@PathVariable Integer id,
+                                                              @Valid @RequestBody PartidoEstadoUpdateDTO req) {
+        return ResponseEntity.ok(svc.actualizarEstado(id, req.estado()));
     }
 }

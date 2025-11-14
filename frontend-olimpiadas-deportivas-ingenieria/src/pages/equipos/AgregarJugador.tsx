@@ -85,8 +85,8 @@ export function AgregarJugador({ equipoId, torneoId, onSuccess }: AgregarJugador
               {jugadoresDisponibles.map((jugador) => (
                 <CommandItem
                   key={jugador.id}
-                  value={`${jugador.id}-${jugador.nombre}`}
-                  onSelect={() => {
+                  value={jugador.nombre}
+                  onSelect={(currentValue) => {
                     if (jugador.id == null) {
                       // Seguridad extra: no debería pasar
                       console.warn('[AgregarJugador] Jugador sin id', jugador);

@@ -64,6 +64,11 @@ public class TablaPosicionesService {
                     .filter(p -> p.getGrupo() != null && grupo.getId().equals(p.getGrupo().getId()))
                     .toList();
         }
+        
+        // Solo considerar partidos TERMINADOS para la tabla de posiciones
+        partidos = partidos.stream()
+                .filter(p -> p.getEstado() != null && "TERMINADO".equals(p.getEstado().name()))
+                .toList();
 
         record Stats(int equipoId, String nombre,
                      AtomicInteger pj, AtomicInteger pg, AtomicInteger pe, AtomicInteger pp, AtomicInteger wo,

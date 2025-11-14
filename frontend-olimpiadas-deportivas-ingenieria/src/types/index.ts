@@ -208,6 +208,7 @@ export interface Partido {
   observaciones?: string;
   resultadoEquipo1Id?: number;
   resultadoEquipo2Id?: number;
+  estado?: 'PROGRAMADO' | 'TERMINADO' | 'APLAZADO';
   torneo: Torneo;
   fase?: Fase;
   grupo?: Grupo;
@@ -253,6 +254,7 @@ export interface PartidoDetail {
   equipoVisitanteNombre?: string;
   equipoVisitantePuntos?: number | null;
   observaciones?: string;
+  estado?: 'PROGRAMADO' | 'TERMINADO' | 'APLAZADO';
 }
 
 export interface PartidoCreateRequest {

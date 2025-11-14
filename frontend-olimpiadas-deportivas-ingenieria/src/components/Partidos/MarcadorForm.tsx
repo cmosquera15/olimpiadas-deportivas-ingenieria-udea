@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { partidosService } from '@/services/partidos.service';
 import { catalogoService } from '@/services/catalogo.service';
 import { PartidoDetail } from '@/types';
@@ -18,6 +18,7 @@ interface MarcadorFormProps {
 }
 
 export function MarcadorForm({ partido, onSuccess }: MarcadorFormProps) {
+  const queryClient = useQueryClient();
   const canEdit = hasPermission('Partidos_Editar');
   const [puntosEquipo1, setPuntosEquipo1] = useState<string>(
    partido.equipoLocalPuntos?.toString() ?? ''
@@ -59,14 +60,16 @@ export function MarcadorForm({ partido, onSuccess }: MarcadorFormProps) {
   const mutation = useMutation({
     mutationFn: () =>
       partidosService.actualizarMarcador(partido.id, {
-        equipo1Id: partido.equipoLocal!.id,
-        equipo2Id: partido.equipoVisitante!.id,
+        equipo1Id: partido.equipoLocalId,
+        equipo2Id: partido.equipoVisitanteId,
         puntosEquipo1: puntosEquipo1 ? Number(puntosEquipo1) : undefined,
         puntosEquipo2: puntosEquipo2 ? Number(puntosEquipo2) : undefined,
         resultadoEquipo1Id: resultadoEquipo1Id ? Number(resultadoEquipo1Id) : undefined,
         resultadoEquipo2Id: resultadoEquipo2Id ? Number(resultadoEquipo2Id) : undefined,
       }),
     onSuccess: () => {
+      // Invalidate posiciones to update the standings table
+      queryClient.invalidateQueries({ queryKey: ['posiciones'] });
       toast({
         title: 'Marcador actualizado',
         description: 'El marcador se ha actualizado correctamente',

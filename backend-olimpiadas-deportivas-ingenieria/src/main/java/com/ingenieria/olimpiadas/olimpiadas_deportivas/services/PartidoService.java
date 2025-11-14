@@ -415,4 +415,32 @@ public class PartidoService {
         if (!epps.isEmpty()) eppRepository.deleteAll(epps);
         partidoRepository.deleteById(id);
     }
+
+    @Transactional
+    public PartidoDetailDTO actualizarEstado(Integer partidoId, String estado) {
+        Partido p = partidoRepository.findById(partidoId)
+                .orElseThrow(() -> new NotFoundException("Partido no encontrado"));
+        
+        try {
+            EstadoPartido nuevoEstado = EstadoPartido.valueOf(estado.toUpperCase());
+            p.setEstado(nuevoEstado);
+            
+            // Si cambia a TERMINADO, validar que tenga marcador
+            if (nuevoEstado == EstadoPartido.TERMINADO) {
+                List<EquiposPorPartido> epps = eppRepository.findByPartidoId(partidoId);
+                if (epps.size() == 2) {
+                    boolean tieneMarcador = epps.get(0).getPuntos() != null && epps.get(1).getPuntos() != null;
+                    if (!tieneMarcador) {
+                        throw new BadRequestException("No se puede marcar como TERMINADO sin actualizar el marcador");
+                    }
+                }
+            }
+            
+            partidoRepository.save(p);
+            List<EquiposPorPartido> epps = eppRepository.findByPartidoId(partidoId);
+            return mapper.toDetailDTO(p, epps);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Estado inválido. Valores permitidos: PROGRAMADO, TERMINADO, APLAZADO");
+        }
+    }
 }

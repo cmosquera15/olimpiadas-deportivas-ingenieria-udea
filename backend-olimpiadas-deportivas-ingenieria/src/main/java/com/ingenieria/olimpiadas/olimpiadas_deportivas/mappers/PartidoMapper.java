@@ -105,6 +105,7 @@ public interface PartidoMapper {
         Integer numeroJornada = (p.getJornada() != null) ? p.getJornada().getNumero() : null;
         String arbitroNombre  = (p.getArbitro() != null) ? p.getArbitro().getNombre() : null;
         String olimpiadaNombre = (p.getTorneo() != null && p.getTorneo().getOlimpiada() != null) ? p.getTorneo().getOlimpiada().getNombre() : null;
+        String estado = (p.getEstado() != null) ? p.getEstado().name() : "PROGRAMADO";
 
         return new PartidoDetailDTO(
                 p.getId(),
@@ -130,7 +131,8 @@ public interface PartidoMapper {
                 equipoVisitanteNombre,
                 equipoVisitantePuntos,
                 (p.getTorneo() != null && p.getTorneo().getOlimpiada() != null) ? p.getTorneo().getOlimpiada().getId() : null,
-                olimpiadaNombre
+                olimpiadaNombre,
+                estado
         );
     }
 

@@ -27,5 +27,6 @@ public record PartidoDetailDTO(
         String equipoVisitanteNombre,
         Integer equipoVisitantePuntos,
         Integer idOlimpiada,
-        String olimpiadaNombre
+        String olimpiadaNombre,
+        String estado
 ) {}

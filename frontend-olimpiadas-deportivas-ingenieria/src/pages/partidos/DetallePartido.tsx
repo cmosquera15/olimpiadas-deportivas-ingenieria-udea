@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { partidosService } from '@/services/partidos.service';
 import { formatDateTime } from '@/lib/date';
@@ -8,21 +8,47 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Guard } from '@/components/ui/Guard';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AsignarEquiposForm } from '@/components/Partidos/AsignarEquiposForm';
 import { MarcadorForm } from '@/components/Partidos/MarcadorForm';
 import { EventosPanel } from '@/components/Partidos/EventosPanel';
 import { Calendar, MapPin, User, ArrowLeft, Users, Trophy, Flag } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
+import { hasPermission } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DetallePartido() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: partido, isLoading, refetch } = useQuery({
     queryKey: ['partido', id],
     queryFn: () => partidosService.getPartido(Number(id)),
     enabled: !!id,
   });
+
+  const estadoMutation = useMutation({
+    mutationFn: (nuevoEstado: string) => partidosService.actualizarEstado(Number(id), nuevoEstado),
+    onSuccess: () => {
+      toast({
+        title: 'Estado actualizado',
+        description: 'El estado del partido se actualizó correctamente',
+      });
+      queryClient.invalidateQueries({ queryKey: ['partido', id] });
+      queryClient.invalidateQueries({ queryKey: ['posiciones'] });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response?.data?.message || 'No se pudo actualizar el estado',
+      });
+    },
+  });
+
+  const canEdit = hasPermission('Partidos_Editar');
 
   if (isLoading) {
     return (
@@ -44,8 +70,32 @@ export default function DetallePartido() {
     );
   }
 
-  const isFinished = partido.equipoLocalPuntos !== null && partido.equipoVisitantePuntos !== null;
-  const hasEquipos = partido.equipoLocalId && partido.equipoVisitanteId;
+  const canEdit = hasPermission('Partidos_Editar');
+
+  const isFinished = partido?.equipoLocalPuntos !== null && partido?.equipoVisitantePuntos !== null;
+  const hasEquipos = partido?.equipoLocalId && partido?.equipoVisitanteId;
+
+  const getEstadoBadgeVariant = (estado?: string) => {
+    switch (estado) {
+      case 'TERMINADO':
+        return 'default';
+      case 'APLAZADO':
+        return 'destructive';
+      default:
+        return 'secondary';
+    }
+  };
+
+  const getEstadoLabel = (estado?: string) => {
+    switch (estado) {
+      case 'TERMINADO':
+        return 'Terminado';
+      case 'APLAZADO':
+        return 'Aplazado';
+      default:
+        return 'Programado';
+    }
+  };
 
   return (
     <AppLayout>
@@ -59,8 +109,36 @@ export default function DetallePartido() {
             <h1 className="text-3xl font-bold tracking-tight">Detalle del Partido</h1>
             <p className="text-muted-foreground">{partido.torneoNombre}</p>
           </div>
-          {isFinished && <Badge variant="secondary">Finalizado</Badge>}
+          <Badge variant={getEstadoBadgeVariant(partido.estado)}>{getEstadoLabel(partido.estado)}</Badge>
         </div>
+
+        {/* Selector de Estado - solo para admin/árbitro */}
+        {canEdit && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Estado del Partido</CardTitle>
+              <CardDescription>
+                Cambia el estado del partido. Solo los partidos terminados se consideran en la tabla de posiciones.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Select 
+                value={partido.estado || 'PROGRAMADO'} 
+                onValueChange={(value) => estadoMutation.mutate(value)}
+                disabled={estadoMutation.isPending}
+              >
+                <SelectTrigger className="w-full md:w-[300px]">
+                  <SelectValue placeholder="Seleccionar estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PROGRAMADO">Programado</SelectItem>
+                  <SelectItem value="TERMINADO">Terminado</SelectItem>
+                  <SelectItem value="APLAZADO">Aplazado</SelectItem>
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Información General */}
         <Card>

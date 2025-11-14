@@ -69,4 +69,9 @@ export const partidosService = {
     const { data } = await axiosInstance.put<PartidoDetail>(`/partidos/${id}/marcador`, request);
     return data;
   },
+
+  actualizarEstado: async (id: number, estado: string): Promise<PartidoDetail> => {
+    const { data } = await axiosInstance.put<PartidoDetail>(`/partidos/${id}/estado`, { estado });
+    return data;
+  },
 };

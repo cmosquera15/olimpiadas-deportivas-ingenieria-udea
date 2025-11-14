@@ -96,6 +96,8 @@ export function EventosPanel({ partido }: EventosPanelProps) {
         description: 'El evento se ha registrado correctamente',
       });
       queryClient.invalidateQueries({ queryKey: ['eventos', partido.id] });
+      // Invalidate posiciones to update Fair Play in standings table
+      queryClient.invalidateQueries({ queryKey: ['posiciones'] });
       setTipoEventoId(undefined);
       setUsuarioId(undefined);
       setObservaciones('');
@@ -125,6 +127,8 @@ export function EventosPanel({ partido }: EventosPanelProps) {
         description: 'El evento se ha eliminado correctamente',
       });
       queryClient.invalidateQueries({ queryKey: ['eventos', partido.id] });
+      // Invalidate posiciones to update Fair Play in standings table
+      queryClient.invalidateQueries({ queryKey: ['posiciones'] });
     },
     onError: (error: unknown) => {
       let description = 'Ocurrió un error al eliminar el evento';
@@ -267,7 +271,7 @@ export function EventosPanel({ partido }: EventosPanelProps) {
                     <SelectValue placeholder="Seleccionar evento" />
                   </SelectTrigger>
                   <SelectContent>
-                    {tiposEvento.map((tipo) => (
+                    {tiposEvento?.map((tipo) => (
                       <SelectItem key={tipo.id} value={tipo.id.toString()}>
                         {tipo.nombre} ({tipo.puntosNegativos} pts. neg.)
                       </SelectItem>

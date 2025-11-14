@@ -44,4 +44,9 @@ public class Partido {
 
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="id_torneo", nullable=false)
     private Torneo torneo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name="estado", length=20, nullable=false)
+    @Builder.Default
+    private EstadoPartido estado = EstadoPartido.PROGRAMADO;
 }

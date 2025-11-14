@@ -479,7 +479,7 @@ export default function Usuarios() {
                                     {updatePerfilAdminMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
                                   </Button>
                                 </div>
-                                <p className="text-xs text-muted-foreground">Sólo se envían los campos modificados. Documento no se puede cambiar si ya existe.</p>
+                                <p className="text-xs text-muted-foreground">Sólo se envían los campos modificados.</p>
                               </div>
                             </DialogContent>
                           </Dialog>

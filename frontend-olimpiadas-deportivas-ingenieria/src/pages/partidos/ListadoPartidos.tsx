@@ -184,9 +184,17 @@ export default function ListadoPartidos() {
                           )}
                         </CardDescription>
                       </div>
-                      {partido.puntosLocal !== null && partido.puntosVisitante !== null && (
-                        <Badge className="bg-success">Finalizado</Badge>
-                      )}
+                      <Badge 
+                        variant={
+                          partido.estado === 'TERMINADO' ? 'default' :
+                          partido.estado === 'APLAZADO' ? 'destructive' : 
+                          'secondary'
+                        }
+                      >
+                        {partido.estado === 'TERMINADO' ? 'Terminado' :
+                         partido.estado === 'APLAZADO' ? 'Aplazado' :
+                         'Programado'}
+                      </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4 flex-1">
