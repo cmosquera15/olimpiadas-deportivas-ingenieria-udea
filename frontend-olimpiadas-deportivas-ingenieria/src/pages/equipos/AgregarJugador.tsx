@@ -1,20 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Usuario } from '@/types';
 import { equiposService } from '@/services/equipos.service';
 import { equipoDetalleService } from '@/services/equipo-detalle.service';
@@ -27,28 +14,23 @@ interface AgregarJugadorProps {
 }
 
 export function AgregarJugador({ equipoId, torneoId, onSuccess }: AgregarJugadorProps) {
-  const [open, setOpen] = useState(false);
-  // Usamos un tipo local con id obligatorio para evitar casos donde Usuario.id es opcional
-  interface JugadorSeleccionado extends Usuario { id: number }
-  const [selectedUser, setSelectedUser] = useState<JugadorSeleccionado | null>(null);
-  const [searchText, setSearchText] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState<string>('none');
   const { toast } = useToast();
 
   const { data: jugadoresDisponibles = [] } = useQuery({
-    queryKey: ['jugadores-disponibles', equipoId, torneoId, searchText],
-    queryFn: () => equipoDetalleService.getJugadoresDisponibles(equipoId, torneoId, searchText || undefined),
+    queryKey: ['jugadores-disponibles', equipoId, torneoId],
+    queryFn: () => equipoDetalleService.getJugadoresDisponibles(equipoId, torneoId),
   });
 
   const agregarJugadorMutation = useMutation({
-    mutationFn: () =>
-      equiposService.addToPlantilla(equipoId, selectedUser!.id!, torneoId),
+    mutationFn: () => equiposService.addToPlantilla(equipoId, Number(selectedUserId), torneoId),
     onSuccess: () => {
       toast({
         title: 'Jugador agregado',
         description: 'El jugador ha sido agregado al equipo exitosamente.',
       });
       onSuccess();
-      setSelectedUser(null);
+      setSelectedUserId('none');
     },
     onError: () => {
       toast({
@@ -61,70 +43,38 @@ export function AgregarJugador({ equipoId, torneoId, onSuccess }: AgregarJugador
 
   return (
     <div className="space-y-4">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between"
-          >
-            {selectedUser ? selectedUser.nombre : 'Seleccionar jugador...'}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-full p-0">
-          <Command>
-            <CommandInput
-              placeholder="Buscar jugador..."
-              value={searchText}
-              onValueChange={setSearchText}
-            />
-            <CommandEmpty>No se encontraron jugadores.</CommandEmpty>
-            <CommandGroup>
-              {jugadoresDisponibles.map((jugador) => (
-                <CommandItem
-                  key={jugador.id}
-                  value={jugador.nombre}
-                  onSelect={(currentValue) => {
-                    if (jugador.id == null) {
-                      // Seguridad extra: no debería pasar
-                      console.warn('[AgregarJugador] Jugador sin id', jugador);
-                      return;
-                    }
-                    setSelectedUser(jugador as JugadorSeleccionado);
-                    setOpen(false);
-                    setSearchText('');
-                    console.log('[AgregarJugador] seleccionado', jugador.id, jugador.nombre);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedUser?.id === jugador.id ? 'opacity-100' : 'opacity-0'
-                    )}
-                  />
-                  <span className="truncate">{jugador.nombre}</span>
-                </CommandItem>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Jugador</label>
+        <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+          <SelectTrigger>
+            <SelectValue placeholder="Seleccionar jugador" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Sin jugador</SelectItem>
+            {jugadoresDisponibles
+              .filter((j) => typeof j.id === 'number')
+              .map((j) => (
+                <SelectItem key={j.id} value={String(j.id)}>
+                  {j.nombre}
+                </SelectItem>
               ))}
-            </CommandGroup>
-          </Command>
-        </PopoverContent>
-      </Popover>
+          </SelectContent>
+        </Select>
+      </div>
 
       <Button
         className="w-full"
         onClick={() => {
-          if (!selectedUser) return;
-          if (selectedUser.id == null) {
-            console.warn('[AgregarJugador] id indefinido, abortando');
-            return;
-          }
+          if (!selectedUserId || selectedUserId === 'none') return;
           agregarJugadorMutation.mutate();
         }}
-        disabled={!selectedUser || agregarJugadorMutation.isPending}
+        disabled={selectedUserId === 'none' || agregarJugadorMutation.isPending}
       >
-        {agregarJugadorMutation.isPending ? 'Agregando...' : selectedUser ? `Agregar a ${selectedUser.nombre}` : 'Agregar al Equipo'}
+        {agregarJugadorMutation.isPending
+          ? 'Agregando...'
+          : selectedUserId !== 'none'
+          ? 'Agregar al Equipo'
+          : 'Agregar al Equipo'}
       </Button>
     </div>
   );

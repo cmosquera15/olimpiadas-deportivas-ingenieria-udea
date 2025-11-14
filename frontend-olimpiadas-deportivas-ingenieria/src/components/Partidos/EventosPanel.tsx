@@ -34,7 +34,7 @@ interface EventosPanelProps {
 export function EventosPanel({ partido }: EventosPanelProps) {
   const canEdit = hasPermission('Partidos_Editar');
   const [tipoEventoId, setTipoEventoId] = useState<string | undefined>(undefined);
-  const [usuarioId, setUsuarioId] = useState<string | undefined>(undefined);
+  const [usuarioId, setUsuarioId] = useState<string>('none');
   const [observaciones, setObservaciones] = useState<string>('');
   const [equipoSeleccionado, setEquipoSeleccionado] = useState<'1' | '2'>('1');
 
@@ -99,7 +99,7 @@ export function EventosPanel({ partido }: EventosPanelProps) {
       // Invalidate posiciones to update Fair Play in standings table
       queryClient.invalidateQueries({ queryKey: ['posiciones'] });
       setTipoEventoId(undefined);
-      setUsuarioId(undefined);
+      setUsuarioId('none');
       setObservaciones('');
     },
     onError: (error: unknown) => {
@@ -149,7 +149,7 @@ export function EventosPanel({ partido }: EventosPanelProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tipoEventoId || !usuarioId) {
+    if (!tipoEventoId || !usuarioId || usuarioId === 'none') {
       toast({
         variant: 'destructive',
         title: 'Campos incompletos',
@@ -242,7 +242,7 @@ export function EventosPanel({ partido }: EventosPanelProps) {
               <label className="text-sm font-medium">Equipo</label>
               <Select value={equipoSeleccionado} onValueChange={(v) => {
                 setEquipoSeleccionado(v as '1' | '2');
-                setUsuarioId('');
+                setUsuarioId('none');
               }}>
                 <SelectTrigger>
                   <SelectValue />
@@ -272,7 +272,7 @@ export function EventosPanel({ partido }: EventosPanelProps) {
                   </SelectTrigger>
                   <SelectContent>
                     {tiposEvento?.map((tipo) => (
-                      <SelectItem key={tipo.id} value={tipo.id.toString()}>
+                      <SelectItem key={tipo.id} value={String(tipo.id)}>
                         {tipo.nombre} ({tipo.puntosNegativos} pts. neg.)
                       </SelectItem>
                     ))}
@@ -288,11 +288,14 @@ export function EventosPanel({ partido }: EventosPanelProps) {
                   <SelectValue placeholder="Seleccionar jugador" />
                 </SelectTrigger>
                 <SelectContent>
-                  {plantilla?.map((p) => (
-                    <SelectItem key={p.usuarioId} value={p.usuarioId.toString()}>
-                      {p.usuario.nombre}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="none">Sin jugador</SelectItem>
+                  {plantilla
+                    ?.filter((p) => typeof p?.usuario?.id === 'number')
+                    .map((p) => (
+                      <SelectItem key={p.usuario.id} value={String(p.usuario.id)}>
+                        {p.usuario.nombre}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
