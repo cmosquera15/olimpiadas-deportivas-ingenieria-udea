@@ -21,8 +21,7 @@ public class Olimpiada {
   @Column(nullable=false, length=255)
   private String nombre;
 
-  // Temporarily allow null to let Hibernate add the column for existing data; we'll backfill and enforce NOT NULL later
-  @Column(nullable=true, length=100, unique=true)
+  @Column(nullable=false, length=100, unique=true)
   private String slug;
 
   private Short edicion;

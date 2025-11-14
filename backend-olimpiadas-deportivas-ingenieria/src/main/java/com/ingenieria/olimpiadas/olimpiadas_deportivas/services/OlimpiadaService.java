@@ -58,9 +58,9 @@ public class OlimpiadaService {
         String slug = generateSlug(req.nombre());
         
         // Check if slug already exists
-        if (olimpiadaRepository.findBySlug(slug).isPresent()) {
-            throw new BadRequestException("Ya existe una olimpiada con ese nombre");
-        }
+        olimpiadaRepository.findBySlug(slug).ifPresent(existing -> {
+            throw new BadRequestException("Ya existe una olimpiada con ese nombre (slug: " + slug + "). Intenta con un nombre diferente.");
+        });
 
         // Create Olimpiada
         Olimpiada olimpiada = Olimpiada.builder()
@@ -113,12 +113,23 @@ public class OlimpiadaService {
     public OlimpiadaDetailDTO actualizar(Integer id, OlimpiadaUpdateDTO req) {
         Olimpiada olimpiada = obtenerPorId(id);
         
-        // Check if the new nombre conflicts with another olimpiada (different id)
+        // Generate new slug from the nombre
         String newSlug = generateSlug(req.nombre());
-        if (!olimpiada.getSlug().equals(newSlug)) {
-            if (olimpiadaRepository.findBySlug(newSlug).isPresent()) {
-                throw new BadRequestException("Ya existe una olimpiada con ese nombre");
-            }
+        
+        // If olimpiada doesn't have a slug yet (legacy data), set it
+        if (olimpiada.getSlug() == null || olimpiada.getSlug().isEmpty()) {
+            // Check if the new slug conflicts with another olimpiada
+            olimpiadaRepository.findBySlug(newSlug).ifPresent(existing -> {
+                throw new BadRequestException("Ya existe una olimpiada con ese nombre (slug: " + newSlug + ")");
+            });
+            olimpiada.setSlug(newSlug);
+        } else if (!olimpiada.getSlug().equals(newSlug)) {
+            // Slug is changing, check if the new slug conflicts with another olimpiada
+            olimpiadaRepository.findBySlug(newSlug).ifPresent(existing -> {
+                if (!existing.getId().equals(id)) {
+                    throw new BadRequestException("Ya existe una olimpiada con ese nombre (slug: " + newSlug + ")");
+                }
+            });
             olimpiada.setSlug(newSlug);
         }
         
@@ -131,7 +142,7 @@ public class OlimpiadaService {
         
         Olimpiada olimpiadaActualizada = olimpiadaRepository.save(olimpiada);
         
-        // Get associated tournaments (use method without activo filter to allow editing inactive olimpiadas)
+        // Get associated tournaments - the JOIN FETCH should eager-load deporte and olimpiada
         List<Torneo> torneos = torneoRepository.findByOlimpiadaIdOrderByNombreAscIncludingInactive(olimpiadaActualizada.getId());
         List<TorneoSummaryDTO> torneoSummaries = torneos.stream()
                 .map(t -> new TorneoSummaryDTO(

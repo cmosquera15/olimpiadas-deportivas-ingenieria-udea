@@ -25,7 +25,7 @@ export interface Usuario {
   documento?: string;
   rol: string;
   habilitado?: boolean;
-  completo: boolean;
+  completo?: boolean;
   genero?: Genero;
   eps?: EPS;
   programaAcademico?: ProgramaAcademico;

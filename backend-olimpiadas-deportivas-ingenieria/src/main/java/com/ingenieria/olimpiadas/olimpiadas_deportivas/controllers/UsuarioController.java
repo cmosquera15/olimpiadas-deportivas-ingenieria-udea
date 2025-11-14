@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.auth.AuthDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.models.usuario.Usuario;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.usuario.UsuarioUpdateDTO;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.usuario.UsuarioDetailDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.UsuarioService;
 
 @RestController
@@ -23,8 +24,9 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Usuario> byId(@PathVariable Integer id) {
-        return ResponseEntity.ok(usuarioService.getById(id));
+    public ResponseEntity<UsuarioDetailDTO> byId(@PathVariable Integer id) {
+        Usuario u = usuarioService.getById(id);
+        return ResponseEntity.ok(UsuarioDetailDTO.from(u));
     }
 
     @PatchMapping("/me")
