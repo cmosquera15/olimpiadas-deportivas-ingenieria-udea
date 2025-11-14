@@ -177,7 +177,7 @@ export default function GestionOlimpiadas() {
                       <p className="text-xs text-destructive">Ya existe una olimpiada con este nombre</p>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Edición</label>
                       <Input
@@ -280,7 +280,7 @@ export default function GestionOlimpiadas() {
                   <p className="text-xs text-destructive">Ya existe una olimpiada con este nombre</p>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Edición</label>
                   <Input
@@ -365,9 +365,9 @@ export default function GestionOlimpiadas() {
               <Card key={olimpiada.id} className="h-full flex flex-col">
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div className="space-y-1 flex-1">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-xl">{olimpiada.nombre}</CardTitle>
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <CardTitle className="text-base sm:text-lg md:text-xl truncate">{olimpiada.nombre}</CardTitle>
                         {olimpiada.activo ? (
                           <Badge variant="default" className="text-xs">
                             Activa

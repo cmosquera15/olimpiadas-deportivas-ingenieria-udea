@@ -99,7 +99,8 @@ export function PlantillaEquipo({ equipo, canEdit }: PlantillaEquipoProps) {
         </div>
       )}
 
-      <Table>
+      <div className="overflow-x-auto rounded-md border bg-card">
+      <Table className="min-w-[640px]">
         <TableHeader>
           <TableRow>
             <TableHead>Nombre</TableHead>
@@ -140,6 +141,7 @@ export function PlantillaEquipo({ equipo, canEdit }: PlantillaEquipoProps) {
           )}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 }

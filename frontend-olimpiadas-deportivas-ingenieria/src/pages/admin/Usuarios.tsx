@@ -417,12 +417,8 @@ export default function Usuarios() {
                                     <Input
                                       value={editForm.documento || ''}
                                       onChange={(e) => setEditForm(f => ({ ...f, documento: e.target.value || undefined }))}
-                                      placeholder={detalle?.documento ? 'Documento ya registrado' : 'Documento'}
-                                      disabled={!!detalle?.documento}
+                                      placeholder="Documento"
                                     />
-                                    {detalle?.documento && (
-                                      <p className="text-[11px] text-muted-foreground">Campo bloqueado: el documento ya existe y no puede modificarse.</p>
-                                    )}
                                   </div>
                                   <div className="space-y-2">
                                     <label className="text-xs font-medium">Programa Académico</label>

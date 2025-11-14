@@ -96,7 +96,7 @@ export default function TablaPosiciones() {
 
   return (
     <AppLayout>
-      <div>
+      <div className="space-y-8">
         {/* Filters */}
         <Card>
           <CardHeader>
@@ -163,21 +163,6 @@ export default function TablaPosiciones() {
           </CardContent>
         </Card>
 
-        {/* Criterios de Desempate */}
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>Criterios de Desempate</AlertTitle>
-          <AlertDescription>
-            1. Mayor número de puntos (PTS)
-            <br />
-            2. Mayor diferencia de goles (GD)
-            <br />
-            3. Mayor número de goles a favor (GF)
-            <br />
-            4. Mejor promedio de Fair Play (valor menor = mejor comportamiento)
-          </AlertDescription>
-        </Alert>
-
         {/* Fases */}
         {torneoId && (
           <Card>
@@ -213,6 +198,89 @@ export default function TablaPosiciones() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Tabla de Posiciones (only for grupos phase) */}
+        {!torneoId ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Trophy className="mx-auto h-12 w-12 text-muted-foreground" />
+              <p className="mt-4 text-muted-foreground">Selecciona un torneo para ver las posiciones</p>
+            </CardContent>
+          </Card>
+        ) : fase === 'grupos' && isLoadingPosiciones ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : fase === 'grupos' && tabla && sortedPosiciones.length > 0 ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Posiciones {tabla?.grupoNombre ? `- ${tabla.grupoNombre}` : ''}</CardTitle>
+              <CardDescription>PJ=Partidos Jugados, PG=Ganados, PE=Empatados, PP=Perdidos, GF=Goles a Favor, GC=Goles en Contra, GD=Diferencia de Goles, PTS=Puntos</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto rounded-md border bg-card">
+                <Table className="min-w-[800px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead>Equipo</TableHead>
+                      <TableHead className="text-center">PJ</TableHead>
+                      <TableHead className="text-center">PG</TableHead>
+                      <TableHead className="text-center">PE</TableHead>
+                      <TableHead className="text-center">PP</TableHead>
+                      <TableHead className="text-center">GF</TableHead>
+                      <TableHead className="text-center">GC</TableHead>
+                      <TableHead className="text-center">GD</TableHead>
+                      <TableHead className="text-center font-bold">PTS</TableHead>
+                      <TableHead className="text-center">Fair Play</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedPosiciones.map((posicion, index) => (
+                      <TableRow key={`${posicion.equipoId}-${index}`}>
+                        <TableCell className="font-medium">{index + 1}</TableCell>
+                        <TableCell className="font-medium">{posicion.equipoNombre || 'Sin nombre'}</TableCell>
+                        <TableCell className="text-center">{posicion.pj}</TableCell>
+                        <TableCell className="text-center">{posicion.pg}</TableCell>
+                        <TableCell className="text-center">{posicion.pe}</TableCell>
+                        <TableCell className="text-center">{posicion.pp}</TableCell>
+                        <TableCell className="text-center">{posicion.gf}</TableCell>
+                        <TableCell className="text-center">{posicion.gc}</TableCell>
+                        <TableCell className="text-center">{posicion.gd > 0 ? '+' : ''}{posicion.gd}</TableCell>
+                        <TableCell className="text-center font-bold text-primary">{posicion.pts}</TableCell>
+                        <TableCell className="text-center">{(posicion.fairPlay ?? 0).toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        ) : fase === 'grupos' && (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Trophy className="mx-auto h-12 w-12 text-muted-foreground" />
+              <p className="mt-4 text-muted-foreground">No hay datos de posiciones disponibles</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Criterios de Desempate */}
+        {fase === 'grupos' && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertTitle>Criterios de Desempate</AlertTitle>
+            <AlertDescription>
+              1. Mayor número de puntos (PTS)
+              <br />
+              2. Mayor diferencia de goles (GD)
+              <br />
+              3. Mayor número de goles a favor (GF)
+              <br />
+              4. Mejor promedio de Fair Play (valor menor = mejor comportamiento)
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* Knockout Phase Matches View */}
@@ -304,8 +372,8 @@ export default function TablaPosiciones() {
               <CardDescription>PJ=Partidos Jugados, PG=Ganados, PE=Empatados, PP=Perdidos, GF=Goles a Favor, GC=Goles en Contra, GD=Diferencia de Goles, PTS=Puntos</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
+              <div className="overflow-x-auto rounded-md border bg-card">
+                <Table className="min-w-[800px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">#</TableHead>

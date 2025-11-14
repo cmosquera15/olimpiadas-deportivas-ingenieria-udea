@@ -66,10 +66,10 @@ export default function Dashboard() {
 
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="bg-gradient-to-r from-primary via-contrast to-secondary bg-clip-text text-3xl font-extrabold tracking-tight text-transparent md:text-4xl">
+              <h1 className="bg-gradient-to-r from-primary via-contrast to-secondary bg-clip-text text-2xl font-extrabold tracking-tight text-transparent sm:text-3xl md:text-4xl lg:text-5xl">
                 ¡Bienvenido a las Olimpiadas de Ingeniería!
               </h1>
-              <p className="mt-2 max-w-prose text-sm text-muted-foreground md:text-base">
+              <p className="mt-2 max-w-prose text-xs text-muted-foreground sm:text-sm md:text-base">
                 Gestiona torneos, programa partidos, administra equipos y consulta posiciones en tiempo real.
               </p>
             </div>
@@ -78,27 +78,27 @@ export default function Dashboard() {
 
           <div className="mt-4 flex flex-wrap gap-2">
             <Link to="/olimpiadas">
-              <Button variant="default">Crear/Ver Olimpiadas</Button>
+              <Button variant="default" size="sm" className="sm:h-10 sm:px-4">Crear/Ver Olimpiadas</Button>
             </Link>
             <Link to="/equipos">
-              <Button variant="secondary">Gestionar Equipos</Button>
+              <Button variant="secondary" size="sm" className="sm:h-10 sm:px-4">Gestionar Equipos</Button>
             </Link>
             <Link to="/partidos">
-              <Button variant="outline">Programar Partidos</Button>
+              <Button variant="outline" size="sm" className="sm:h-10 sm:px-4">Programar Partidos</Button>
             </Link>
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {quickLinks.map((link) => (
             <Link key={link.href} to={link.href}>
               <Card className="transition-all hover:shadow-lg hover:border-primary/40">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <link.icon className={`h-8 w-8 ${link.color}`} />
+                    <link.icon className={`h-6 w-6 sm:h-8 sm:w-8 ${link.color}`} />
                   </div>
-                  <CardTitle className="text-lg">{link.title}</CardTitle>
-                  <CardDescription>{link.description}</CardDescription>
+                  <CardTitle className="text-base sm:text-lg">{link.title}</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">{link.description}</CardDescription>
                 </CardHeader>
               </Card>
             </Link>
