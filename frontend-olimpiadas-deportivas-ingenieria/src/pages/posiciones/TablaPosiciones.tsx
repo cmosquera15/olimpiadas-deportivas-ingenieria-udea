@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Trophy, Info } from 'lucide-react';
 import { format } from 'date-fns';
@@ -99,7 +100,19 @@ export default function TablaPosiciones() {
         {/* Filters */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Selecciona un Torneo</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Selecciona un Torneo</CardTitle>
+              <Button
+                variant="outline"
+                className="hover:bg-transparent"
+                onClick={() => {
+                  setTorneoId(undefined);
+                  setGrupoId(undefined);
+                }}
+              >
+                Limpiar
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">

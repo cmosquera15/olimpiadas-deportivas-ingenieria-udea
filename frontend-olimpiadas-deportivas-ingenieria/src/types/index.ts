@@ -24,6 +24,7 @@ export interface Usuario {
   fotoUrl?: string | null;
   documento?: string;
   rol: string;
+  rolDescripcion?: string;
   habilitado?: boolean;
   completo?: boolean;
   genero?: Genero;

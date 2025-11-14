@@ -6,10 +6,12 @@ import { useMutation } from '@tanstack/react-query';
 import { authService } from '@/services/auth.service';
 import { useAuth } from '@/store/useAuth';
 import { toast } from 'sonner';
-import { Trophy } from 'lucide-react';
+import { Trophy, Moon, Sun } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import axios from 'axios';
 import { Usuario } from '@/types';
+import { Button } from '@/components/ui/button';
+import * as React from 'react';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const LOGO_UDEA_DARK = '/UdeA+simplificado-03.png';
@@ -19,6 +21,20 @@ const LOGO_OLIMPIADAS = '/Logo+Olimpiadas.png';
 export default function Login() {
   const navigate = useNavigate();
   const { setAuth, isAuthenticated, profileComplete  } = useAuth();
+
+  // Theme state (same behavior as AppLayout)
+  const [isDark, setIsDark] = React.useState<boolean>(() => {
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark') return true;
+    if (stored === 'light') return false;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  React.useEffect(() => {
+    const html = document.documentElement;
+    if (isDark) html.classList.add('dark');
+    else html.classList.remove('dark');
+  }, [isDark]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -68,7 +84,24 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
+      {/* Theme Toggle (visible también en login) */}
+      <div className="absolute right-4 top-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Cambiar tema"
+          onClick={() => {
+            setIsDark((prev) => {
+              const next = !prev;
+              localStorage.setItem('theme', next ? 'dark' : 'light');
+              return next;
+            });
+          }}
+        >
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </Button>
+      </div>
       <Card className="w-full max-w-2xl overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Left: Branding */}

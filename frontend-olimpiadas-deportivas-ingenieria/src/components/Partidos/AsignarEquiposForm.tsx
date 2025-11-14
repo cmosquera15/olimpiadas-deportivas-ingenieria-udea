@@ -12,9 +12,11 @@ interface AsignarEquiposFormProps {
   partidoId: number;
   torneoId: number;
   onSuccess?: () => void;
+  /** Permite forzar el grupo si ya lo tienes fuera; si se omite se toma del partido */
+  grupoId?: number;
 }
 
-export function AsignarEquiposForm({ partidoId, torneoId, onSuccess }: AsignarEquiposFormProps) {
+export function AsignarEquiposForm({ partidoId, torneoId, onSuccess, grupoId }: AsignarEquiposFormProps) {
   const [equipoId1, setEquipoId1] = useState<string | undefined>(undefined);
   const [equipoId2, setEquipoId2] = useState<string | undefined>(undefined);
   const { toast } = useToast();
@@ -23,6 +25,16 @@ export function AsignarEquiposForm({ partidoId, torneoId, onSuccess }: AsignarEq
     queryKey: ['equipos', torneoId],
     queryFn: () => equiposService.getEquipos(torneoId),
   });
+
+  // Si no recibimos grupoId, obtenemos el partido para extraer su grupo asignado.
+  const { data: partido } = useQuery({
+    enabled: typeof grupoId === 'undefined',
+    queryKey: ['partido', partidoId],
+    queryFn: () => partidosService.getPartido(partidoId),
+  });
+
+  const grupoFiltradoId = typeof grupoId === 'number' ? grupoId : partido?.idGrupo;
+  const equiposFiltrados = (equipos || []).filter(e => !grupoFiltradoId || e.grupoId === grupoFiltradoId);
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -93,7 +105,7 @@ export function AsignarEquiposForm({ partidoId, torneoId, onSuccess }: AsignarEq
               <SelectValue placeholder="Seleccionar equipo" />
             </SelectTrigger>
             <SelectContent>
-              {equipos?.map((equipo) => (
+              {equiposFiltrados.map((equipo) => (
                 <SelectItem
                   key={equipo.id}
                   value={equipo.id.toString()}
@@ -113,7 +125,7 @@ export function AsignarEquiposForm({ partidoId, torneoId, onSuccess }: AsignarEq
               <SelectValue placeholder="Seleccionar equipo" />
             </SelectTrigger>
             <SelectContent>
-              {equipos?.map((equipo) => (
+              {equiposFiltrados.map((equipo) => (
                 <SelectItem
                   key={equipo.id}
                   value={equipo.id.toString()}

@@ -145,7 +145,8 @@ export default function Usuarios() {
       // Construir payload sólo con campos definidos
       const payload: UsuarioUpdatePayload = {};
       if (editForm.nombre) payload.nombre = editForm.nombre;
-      if (editForm.documento) payload.documento = editForm.documento;
+      // Documento: sólo permitir enviarlo si no existe aún en backend
+      if (!detalle?.documento && editForm.documento) payload.documento = editForm.documento;
       if (editForm.id_programa_academico) payload.id_programa_academico = editForm.id_programa_academico;
       if (editForm.id_genero) payload.id_genero = editForm.id_genero;
       if (editForm.id_eps) payload.id_eps = editForm.id_eps;
@@ -411,8 +412,16 @@ export default function Usuarios() {
                                     <Input value={editForm.nombre || ''} onChange={(e) => setEditForm(f => ({ ...f, nombre: e.target.value || undefined }))} placeholder="Nombre" />
                                   </div>
                                   <div className="space-y-2">
-                                    <label className="text-xs font-medium">Documento (si no existe)</label>
-                                    <Input value={editForm.documento || ''} onChange={(e) => setEditForm(f => ({ ...f, documento: e.target.value || undefined }))} placeholder="Documento" />
+                                    <label className="text-xs font-medium">Documento</label>
+                                    <Input
+                                      value={editForm.documento || ''}
+                                      onChange={(e) => setEditForm(f => ({ ...f, documento: e.target.value || undefined }))}
+                                      placeholder={detalle?.documento ? 'Documento ya registrado' : 'Documento'}
+                                      disabled={!!detalle?.documento}
+                                    />
+                                    {detalle?.documento && (
+                                      <p className="text-[11px] text-muted-foreground">Campo bloqueado: el documento ya existe y no puede modificarse.</p>
+                                    )}
                                   </div>
                                   <div className="space-y-2">
                                     <label className="text-xs font-medium">Programa Académico</label>
@@ -473,7 +482,7 @@ export default function Usuarios() {
                                     {updatePerfilAdminMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
                                   </Button>
                                 </div>
-                                <p className="text-xs text-muted-foreground">Sólo se envían los campos modificados. Documento no se puede cambiar si ya existe en backend.</p>
+                                <p className="text-xs text-muted-foreground">Sólo se envían los campos modificados. Documento no se puede cambiar si ya existe.</p>
                               </div>
                             </DialogContent>
                           </Dialog>

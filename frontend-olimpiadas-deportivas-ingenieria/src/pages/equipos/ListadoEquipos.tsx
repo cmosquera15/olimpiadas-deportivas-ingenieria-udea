@@ -15,6 +15,7 @@ import type { Grupo, ProgramaAcademico } from '@/types';
 import { toast } from 'sonner';
 import type { EquipoCreateRequest } from '@/services/equipos.service';
 import { hasPermission } from '@/lib/auth';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export default function ListadoEquipos() {
   const [torneoId, setTorneoId] = useState<number | undefined>(undefined);
@@ -88,6 +89,152 @@ export default function ListadoEquipos() {
             <h1 className="text-3xl font-bold tracking-tight">Equipos</h1>
             <p className="text-muted-foreground">Consulta y gestiona los equipos</p>
           </div>
+          {canCreateEquipo && (
+            <Dialog open={creating} onOpenChange={setCreating}>
+              <DialogTrigger asChild>
+                <Button variant="secondary">Nuevo equipo</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[560px]">
+                <DialogHeader>
+                  <DialogTitle>Crear equipo</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Nombre del equipo</label>
+                      <Input
+                        value={createForm.nombre}
+                        onChange={(e) => setCreateForm((f) => ({ ...f, nombre: e.target.value }))}
+                        placeholder="Ingresa el nombre"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Torneo</label>
+                      <Select
+                        value={createForm.id_torneo?.toString() || (torneoId ? torneoId.toString() : 'none')}
+                        onValueChange={(v) =>
+                          setCreateForm((f) => ({
+                            ...f,
+                            id_torneo: v === 'none' ? undefined : Number(v),
+                            id_grupo: undefined,
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un torneo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">(Sin seleccionar)</SelectItem>
+                          {torneos?.map((t) => (
+                            <SelectItem key={t.id} value={t.id.toString()}>
+                              {t.nombre} - {t.olimpiadaNombre}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Grupo</label>
+                      <Select
+                        value={createForm.id_grupo?.toString() || 'none'}
+                        onValueChange={(v) =>
+                          setCreateForm((f) => ({ ...f, id_grupo: v === 'none' ? undefined : Number(v) }))
+                        }
+                        disabled={!createForm.id_torneo}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={createForm.id_torneo ? 'Selecciona un grupo' : 'Selecciona un torneo primero'} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">(Sin seleccionar)</SelectItem>
+                          {grupos?.map((g) => (
+                            <SelectItem key={g.id} value={g.id.toString()}>
+                              {g.nombre}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Programa Académico 1</label>
+                      <Select
+                        value={createForm.id_programa_academico_1?.toString() || 'none'}
+                        onValueChange={(v) =>
+                          setCreateForm((f) => ({
+                            ...f,
+                            id_programa_academico_1: v === 'none' ? undefined : Number(v),
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona el programa principal" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">(Sin seleccionar)</SelectItem>
+                          {programas?.map((p) => (
+                            <SelectItem key={p.id} value={p.id.toString()}>
+                              {p.nombre}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Programa Académico 2 (opcional)</label>
+                      <Select
+                        value={createForm.id_programa_academico_2?.toString() || 'none'}
+                        onValueChange={(v) =>
+                          setCreateForm((f) => ({
+                            ...f,
+                            id_programa_academico_2: v === 'none' ? undefined : Number(v),
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Opcional" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">(Sin seleccionar)</SelectItem>
+                          {programas?.map((p) => (
+                            <SelectItem key={p.id} value={p.id.toString()}>
+                              {p.nombre}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      onClick={() => {
+                        if (!createForm.nombre || !createForm.id_torneo || !createForm.id_grupo || !createForm.id_programa_academico_1) return;
+                        const payload: EquipoCreateRequest = {
+                          nombre: createForm.nombre,
+                          id_torneo: createForm.id_torneo,
+                          id_grupo: createForm.id_grupo,
+                          id_programa_academico_1: createForm.id_programa_academico_1,
+                          ...(createForm.id_programa_academico_2 ? { id_programa_academico_2: createForm.id_programa_academico_2 } : {}),
+                          ...(createForm.id_usuario_capitan ? { id_usuario_capitan: createForm.id_usuario_capitan } : {}),
+                        };
+                        createEquipoMutation.mutate(payload, {
+                          onSuccess: () => setCreating(false),
+                        });
+                      }}
+                      disabled={
+                        !createForm.nombre ||
+                        !createForm.id_torneo ||
+                        !createForm.id_grupo ||
+                        !createForm.id_programa_academico_1 ||
+                        createEquipoMutation.isPending
+                      }
+                    >
+                      {createEquipoMutation.isPending ? 'Creando...' : 'Crear equipo'}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
 
         <Card>
@@ -95,7 +242,7 @@ export default function ListadoEquipos() {
             <CardTitle>Filtros</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-end justify-between">
               <div className="flex-1">
                 <label className="text-sm font-medium mb-2 block">Torneo</label>
                 <Select
@@ -117,154 +264,22 @@ export default function ListadoEquipos() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="flex-none">
+                <Button
+                  variant="outline"
+                  className="hover:bg-transparent"
+                  onClick={() => {
+                    setTorneoId(undefined);
+                  }}
+                >
+                  Limpiar
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {canCreateEquipo && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Crear equipo</CardTitle>
-            <Button variant="secondary" onClick={() => setCreating((v) => !v)}>
-              {creating ? 'Cancelar' : 'Nuevo equipo'}
-            </Button>
-          </CardHeader>
-          {creating && (
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Nombre del equipo</label>
-                  <Input
-                    value={createForm.nombre}
-                    onChange={(e) => setCreateForm((f) => ({ ...f, nombre: e.target.value }))}
-                    placeholder="Ingresa el nombre"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Torneo</label>
-                  <Select
-                    value={createForm.id_torneo?.toString() || 'none'}
-                    onValueChange={(v) =>
-                      setCreateForm((f) => ({
-                        ...f,
-                        id_torneo: v === 'none' ? undefined : Number(v),
-                        id_grupo: undefined,
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona un torneo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">(Sin seleccionar)</SelectItem>
-                      {torneos?.map((t) => (
-                        <SelectItem key={t.id} value={t.id.toString()}>
-                          {t.nombre} - {t.olimpiadaNombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Grupo</label>
-                  <Select
-                    value={createForm.id_grupo?.toString() || 'none'}
-                    onValueChange={(v) =>
-                      setCreateForm((f) => ({ ...f, id_grupo: v === 'none' ? undefined : Number(v) }))
-                    }
-                    disabled={!createForm.id_torneo}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={createForm.id_torneo ? 'Selecciona un grupo' : 'Selecciona un torneo primero'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">(Sin seleccionar)</SelectItem>
-                      {grupos?.map((g) => (
-                        <SelectItem key={g.id} value={g.id.toString()}>
-                          {g.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Programa Académico 1</label>
-                  <Select
-                    value={createForm.id_programa_academico_1?.toString() || 'none'}
-                    onValueChange={(v) =>
-                      setCreateForm((f) => ({
-                        ...f,
-                        id_programa_academico_1: v === 'none' ? undefined : Number(v),
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona el programa principal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">(Sin seleccionar)</SelectItem>
-                      {programas?.map((p) => (
-                        <SelectItem key={p.id} value={p.id.toString()}>
-                          {p.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Programa Académico 2 (opcional)</label>
-                  <Select
-                    value={createForm.id_programa_academico_2?.toString() || 'none'}
-                    onValueChange={(v) =>
-                      setCreateForm((f) => ({
-                        ...f,
-                        id_programa_academico_2: v === 'none' ? undefined : Number(v),
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Opcional" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">(Sin seleccionar)</SelectItem>
-                      {programas?.map((p) => (
-                        <SelectItem key={p.id} value={p.id.toString()}>
-                          {p.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div>
-                <Button
-                  onClick={() => {
-                    if (!createForm.nombre || !createForm.id_torneo || !createForm.id_grupo || !createForm.id_programa_academico_1) return;
-                    const payload: EquipoCreateRequest = {
-                      nombre: createForm.nombre,
-                      id_torneo: createForm.id_torneo,
-                      id_grupo: createForm.id_grupo,
-                      id_programa_academico_1: createForm.id_programa_academico_1,
-                      ...(createForm.id_programa_academico_2 ? { id_programa_academico_2: createForm.id_programa_academico_2 } : {}),
-                      ...(createForm.id_usuario_capitan ? { id_usuario_capitan: createForm.id_usuario_capitan } : {}),
-                    };
-                    createEquipoMutation.mutate(payload);
-                  }}
-                  disabled={
-                    !createForm.nombre ||
-                    !createForm.id_torneo ||
-                    !createForm.id_grupo ||
-                    !createForm.id_programa_academico_1 ||
-                    createEquipoMutation.isPending
-                  }
-                >
-                  {createEquipoMutation.isPending ? 'Creando...' : 'Crear equipo'}
-                </Button>
-              </div>
-            </CardContent>
-          )}
-        </Card>
-        )}
+        {/* Modal de creación movido al header de Filtros para replicar UX de Partidos */}
 
         {selectedTorneo && (
           <div className="flex items-center gap-2">

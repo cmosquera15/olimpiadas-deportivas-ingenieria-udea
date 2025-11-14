@@ -2,17 +2,34 @@ import { AppLayout } from '@/components/Layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Trophy, Calendar, Users, BarChart3 } from 'lucide-react';
+import { Trophy, Calendar, Users, BarChart3, Medal } from 'lucide-react';
 import { getUserRole } from '@/lib/auth';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/store/useAuth';
+import { usuariosService } from '@/services/usuarios.service';
 
 export default function Dashboard() {
   const role = getUserRole() ?? 'JUGADOR';
+  const { user } = useAuth();
+  const userId = user?.id;
+  const { data: perfil } = useQuery({
+    queryKey: ['usuario-detalle', userId],
+    queryFn: () => usuariosService.getUsuarioCompleto(userId as number),
+    enabled: !!userId,
+  });
 
   const quickLinks = [
     {
+      title: 'Olimpiadas',
+      description: 'Crear y administrar olimpiadas',
+      icon: Trophy,
+      href: '/olimpiadas',
+      color: 'text-primary',
+    },
+    {
       title: 'Torneos',
       description: 'Ver y gestionar torneos deportivos',
-      icon: Trophy,
+      icon: Medal,
       href: '/torneos',
       color: 'text-primary',
     },
@@ -74,8 +91,7 @@ export default function Dashboard() {
               <strong>Rol:</strong> {role}
             </p>
             <p className="text-sm text-muted-foreground">
-              Este sistema permite gestionar torneos deportivos, programar partidos, administrar
-              equipos y consultar posiciones en tiempo real.
+              {perfil?.rolDescripcion || 'Este sistema permite gestionar torneos deportivos, programar partidos, administrar equipos y consultar posiciones en tiempo real.'}
             </p>
           </CardContent>
         </Card>

@@ -81,6 +81,7 @@ export default function ListadoTorneos() {
                 <Button 
                   variant="outline" 
                   size="sm" 
+                  className="hover:bg-transparent"
                   onClick={handleClearFilters}
                 >
                   Limpiar filtros

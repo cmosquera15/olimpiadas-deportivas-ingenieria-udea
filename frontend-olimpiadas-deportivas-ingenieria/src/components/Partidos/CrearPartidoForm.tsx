@@ -404,11 +404,14 @@ export function CrearPartidoForm({ torneoId, onCreated }: CrearPartidoFormProps)
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="none">Sin jornada</SelectItem>
-                    {jornadas?.map((jornada) => (
-                      <SelectItem key={jornada.id} value={jornada.id.toString()}>
-                        {jornada.nombre}
-                      </SelectItem>
-                    ))}
+                    {jornadas?.map((jornada, idx) => {
+                      const display = jornada.nombre?.trim() ? jornada.nombre : `Jornada ${idx + 1}`;
+                      return (
+                        <SelectItem key={jornada.id} value={jornada.id.toString()}>
+                          {display}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <FormMessage />

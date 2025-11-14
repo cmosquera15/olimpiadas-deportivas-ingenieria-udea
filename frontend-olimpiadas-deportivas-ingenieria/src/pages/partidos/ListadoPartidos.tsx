@@ -124,7 +124,7 @@ export default function ListadoPartidos() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Filtros</CardTitle>
-            <Button variant="ghost" size="sm" onClick={limpiarFiltros}>
+            <Button variant="outline" size="sm" className="hover:bg-transparent" onClick={limpiarFiltros}>
               Limpiar
             </Button>
           </CardHeader>
