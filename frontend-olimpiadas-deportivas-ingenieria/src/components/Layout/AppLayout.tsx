@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
+import { SportsBackground } from '@/components/decor/SportsBackground';
 
 interface AppLayoutProps {
   children: JSX.Element | JSX.Element[];
@@ -215,6 +216,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           </header>
 
           {/* Main Content */}
+          {/* Decorative background behind content */}
+          <SportsBackground />
           <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
         </div>
       </div>

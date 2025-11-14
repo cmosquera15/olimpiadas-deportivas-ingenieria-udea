@@ -43,5 +43,9 @@ declare namespace JSX {
     tr: React.DetailedHTMLProps<React.HTMLAttributes<HTMLTableRowElement>, HTMLTableRowElement>;
     th: React.DetailedHTMLProps<React.ThHTMLAttributes<HTMLTableHeaderCellElement>, HTMLTableHeaderCellElement>;
     td: React.DetailedHTMLProps<React.TdHTMLAttributes<HTMLTableDataCellElement>, HTMLTableDataCellElement>;
+    svg: React.SVGProps<SVGSVGElement>;
+    defs: React.SVGProps<SVGDefsElement>;
+    pattern: React.SVGProps<SVGPatternElement>;
+    rect: React.SVGProps<SVGRectElement>;
   }
 }

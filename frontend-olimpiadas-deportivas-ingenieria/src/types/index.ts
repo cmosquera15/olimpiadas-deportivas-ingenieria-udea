@@ -181,7 +181,8 @@ export interface UsuarioPorEquipo {
     correo?: string;
     documento?: string;
     fotoUrl?: string;
-    programaAcademico?: ProgramaAcademico;
+    programaAcademico?: ProgramaAcademico; // may be ignored in equipo detail list
+    epsNombre?: string;
   };
   equipo: {
     id: number;

@@ -28,7 +28,9 @@ interface AgregarJugadorProps {
 
 export function AgregarJugador({ equipoId, torneoId, onSuccess }: AgregarJugadorProps) {
   const [open, setOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
+  // Usamos un tipo local con id obligatorio para evitar casos donde Usuario.id es opcional
+  interface JugadorSeleccionado extends Usuario { id: number }
+  const [selectedUser, setSelectedUser] = useState<JugadorSeleccionado | null>(null);
   const [searchText, setSearchText] = useState('');
   const { toast } = useToast();
 
@@ -85,9 +87,15 @@ export function AgregarJugador({ equipoId, torneoId, onSuccess }: AgregarJugador
                   key={jugador.id}
                   value={`${jugador.id}-${jugador.nombre}`}
                   onSelect={() => {
-                    setSelectedUser(jugador);
+                    if (jugador.id == null) {
+                      // Seguridad extra: no debería pasar
+                      console.warn('[AgregarJugador] Jugador sin id', jugador);
+                      return;
+                    }
+                    setSelectedUser(jugador as JugadorSeleccionado);
                     setOpen(false);
                     setSearchText('');
+                    console.log('[AgregarJugador] seleccionado', jugador.id, jugador.nombre);
                   }}
                 >
                   <Check
@@ -106,10 +114,17 @@ export function AgregarJugador({ equipoId, torneoId, onSuccess }: AgregarJugador
 
       <Button
         className="w-full"
-        onClick={() => selectedUser && agregarJugadorMutation.mutate()}
+        onClick={() => {
+          if (!selectedUser) return;
+          if (selectedUser.id == null) {
+            console.warn('[AgregarJugador] id indefinido, abortando');
+            return;
+          }
+          agregarJugadorMutation.mutate();
+        }}
         disabled={!selectedUser || agregarJugadorMutation.isPending}
       >
-        {agregarJugadorMutation.isPending ? 'Agregando...' : 'Agregar al Equipo'}
+        {agregarJugadorMutation.isPending ? 'Agregando...' : selectedUser ? `Agregar a ${selectedUser.nombre}` : 'Agregar al Equipo'}
       </Button>
     </div>
   );

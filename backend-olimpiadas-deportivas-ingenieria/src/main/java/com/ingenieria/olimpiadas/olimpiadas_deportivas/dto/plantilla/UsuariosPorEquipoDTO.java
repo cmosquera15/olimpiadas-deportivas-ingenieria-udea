@@ -16,7 +16,8 @@ public record UsuariosPorEquipoDTO(
                         upe.getUsuario().getNombre(),
                         upe.getUsuario().getCorreo(),
                         upe.getUsuario().getDocumento(),
-                        upe.getUsuario().getFotoUrl()
+                        upe.getUsuario().getFotoUrl(),
+                        upe.getUsuario().getEntidadPromotoraSalud() != null ? upe.getUsuario().getEntidadPromotoraSalud().getNombre() : null
                 ),
                 new EquipoBasicoDTO(
                         upe.getEquipo().getId(),
@@ -34,7 +35,8 @@ public record UsuariosPorEquipoDTO(
             String nombre,
             String correo,
             String documento,
-            String fotoUrl
+            String fotoUrl,
+            String epsNombre
     ) {}
 
     public record EquipoBasicoDTO(

@@ -170,9 +170,14 @@ export default function Usuarios() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Gestión de Usuarios</h1>
-          <p className="text-muted-foreground">Administra roles y permisos de usuarios</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Gestión de Usuarios</h1>
+            <p className="text-muted-foreground">Administra roles y permisos de usuarios</p>
+          </div>
+          <Button variant="secondary" onClick={() => setCreating(v => !v)}>
+            {creating ? 'Cancelar' : 'Crear Usuario'}
+          </Button>
         </div>
 
         <Card>
@@ -189,11 +194,7 @@ export default function Usuarios() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <div className="mt-4">
-              <Button variant="secondary" onClick={() => setCreating((v) => !v)}>
-                {creating ? 'Cancelar' : 'Crear Usuario'}
-              </Button>
-            </div>
+            {/* Botón de crear usuario movido al header principal */}
             {creating && (
               <div className="mt-6 space-y-4 border-t pt-4">
                 <h3 className="font-semibold text-sm">Nuevo Usuario</h3>

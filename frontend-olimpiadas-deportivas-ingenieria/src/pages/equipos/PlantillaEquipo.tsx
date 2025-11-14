@@ -104,14 +104,15 @@ export function PlantillaEquipo({ equipo, canEdit }: PlantillaEquipoProps) {
           <TableRow>
             <TableHead>Nombre</TableHead>
             <TableHead>Documento</TableHead>
-            <TableHead>Programa</TableHead>
+            <TableHead>Correo</TableHead>
+            <TableHead>EPS</TableHead>
             {canEdit && <TableHead>Acciones</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
           {plantilla.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={canEdit ? 4 : 3} className="text-center text-muted-foreground">
+              <TableCell colSpan={canEdit ? 5 : 4} className="text-center text-muted-foreground">
                 No hay jugadores en la plantilla
               </TableCell>
             </TableRow>
@@ -120,7 +121,8 @@ export function PlantillaEquipo({ equipo, canEdit }: PlantillaEquipoProps) {
               <TableRow key={miembro.id}>
                 <TableCell>{miembro.usuario?.nombre || 'N/A'}</TableCell>
                 <TableCell>{miembro.usuario?.documento || 'N/A'}</TableCell>
-                <TableCell>{miembro.usuario?.programaAcademico?.nombre || 'N/A'}</TableCell>
+                <TableCell>{miembro.usuario?.correo || 'N/A'}</TableCell>
+                <TableCell>{miembro.usuario?.epsNombre || 'N/A'}</TableCell>
                 {canEdit && (
                   <TableCell>
                     <Button

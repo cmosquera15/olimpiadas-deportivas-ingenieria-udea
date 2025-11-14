@@ -32,12 +32,14 @@ public class EquipoService {
     private final ProgramaAcademicoRepository programaRepository;
     private final UsuarioRepository usuarioRepository;
     private final EquipoMapper mapper;
+    private final UsuariosPorEquipoRepository usuariosPorEquipoRepository;
 
     public EquipoService(EquipoRepository equipoRepository,
                          TorneoRepository torneoRepository,
                          GrupoRepository grupoRepository,
                          ProgramaAcademicoRepository programaRepository,
                          UsuarioRepository usuarioRepository,
+                         UsuariosPorEquipoRepository usuariosPorEquipoRepository,
                          EquipoMapper mapper) {
         this.equipoRepository = equipoRepository;
         this.torneoRepository = torneoRepository;
@@ -45,6 +47,7 @@ public class EquipoService {
         this.programaRepository = programaRepository;
         this.usuarioRepository = usuarioRepository;
         this.mapper = mapper;
+        this.usuariosPorEquipoRepository = usuariosPorEquipoRepository;
     }
 
     public Page<EquipoListDTO> listar(Integer torneoId, Integer grupoId, Pageable pageable) {
@@ -59,7 +62,26 @@ public class EquipoService {
             base = equipoRepository.findAll();
         }
 
-        List<EquipoListDTO> dtos = base.stream().map(mapper::toListDTO).toList();
+        // Map teams including dynamic integrantesCount (players assigned per equipo in its torneo)
+        List<EquipoListDTO> dtos = base.stream().map(e -> {
+            Integer torneoIdLocal = e.getTorneo() != null ? e.getTorneo().getId() : null;
+            long count = 0L;
+            if (torneoIdLocal != null) {
+                // Count players for this equipo in its torneo
+                count = usuariosPorEquipoRepository.countByEquipoIdAndTorneoId(e.getId(), torneoIdLocal);
+            }
+            return new EquipoListDTO(
+                    e.getId(),
+                    e.getNombre(),
+                    torneoIdLocal,
+                    e.getTorneo() != null ? e.getTorneo().getNombre() : null,
+                    e.getGrupo() != null ? e.getGrupo().getId() : null,
+                    e.getProgramaAcademico1() != null ? e.getProgramaAcademico1().getId() : null,
+                    e.getProgramaAcademico2() != null ? e.getProgramaAcademico2().getId() : null,
+                    e.getCapitan() != null ? e.getCapitan().getId() : null,
+                    (int) count
+            );
+        }).toList();
 
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), dtos.size());

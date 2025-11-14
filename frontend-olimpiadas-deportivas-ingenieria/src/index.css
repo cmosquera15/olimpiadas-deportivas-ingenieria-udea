@@ -108,5 +108,35 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    /* Sporty gradient background with subtle pattern */
+    background-image:
+      radial-gradient(60rem 60rem at 100% -10%, hsl(var(--accent) / 0.12), transparent 60%),
+      radial-gradient(40rem 40rem at -10% 110%, hsl(var(--primary) / 0.12), transparent 60%),
+      radial-gradient(30rem 30rem at 80% 120%, hsl(var(--secondary) / 0.10), transparent 60%),
+      linear-gradient(180deg, hsl(var(--background)), hsl(var(--background)));
+    background-attachment: fixed;
+  }
+}
+
+/* Decorative floating sports icons */
+.sports-float {
+  position: absolute;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 16px hsl(var(--foreground) / 0.12));
+  animation: float 8s ease-in-out infinite;
+}
+
+.sports-float.spin {
+  animation: float 8s ease-in-out infinite, spin 16s linear infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) }
+  50% { transform: translateY(-8px) }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg) }
+  to { transform: rotate(360deg) }
   }
 }

@@ -2,7 +2,7 @@ import { AppLayout } from '@/components/Layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Trophy, Calendar, Users, BarChart3, Medal } from 'lucide-react';
+import { Trophy, Calendar, Users, BarChart3, Medal, Sparkles } from 'lucide-react';
 import { getUserRole } from '@/lib/auth';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/store/useAuth';
@@ -59,17 +59,40 @@ export default function Dashboard() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bienvenido</h1>
-          <p className="text-muted-foreground">
-            Sistema de gestión de Olimpiadas Deportivas - Ingeniería UdeA
-          </p>
+        {/* Hero section with gradient headline and subtle accent */}
+        <div className="relative overflow-hidden rounded-xl border bg-card p-6 md:p-8">
+          <div className="absolute right-[-10%] top-[-30%] h-64 w-64 rounded-full bg-primary/15 blur-2xl" />
+          <div className="absolute left-[-8%] bottom-[-20%] h-56 w-56 rounded-full bg-secondary/15 blur-2xl" />
+
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="bg-gradient-to-r from-primary via-contrast to-secondary bg-clip-text text-3xl font-extrabold tracking-tight text-transparent md:text-4xl">
+                ¡Bienvenido a las Olimpiadas de Ingeniería!
+              </h1>
+              <p className="mt-2 max-w-prose text-sm text-muted-foreground md:text-base">
+                Gestiona torneos, programa partidos, administra equipos y consulta posiciones en tiempo real.
+              </p>
+            </div>
+            <Sparkles className="h-8 w-8 text-accent" />
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link to="/olimpiadas">
+              <Button variant="default">Crear/Ver Olimpiadas</Button>
+            </Link>
+            <Link to="/equipos">
+              <Button variant="secondary">Gestionar Equipos</Button>
+            </Link>
+            <Link to="/partidos">
+              <Button variant="outline">Programar Partidos</Button>
+            </Link>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {quickLinks.map((link) => (
             <Link key={link.href} to={link.href}>
-              <Card className="transition-all hover:shadow-md">
+              <Card className="transition-all hover:shadow-lg hover:border-primary/40">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <link.icon className={`h-8 w-8 ${link.color}`} />
