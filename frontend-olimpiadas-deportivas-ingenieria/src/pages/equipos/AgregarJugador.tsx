@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Usuario } from '@/types';
@@ -16,6 +16,7 @@ interface AgregarJugadorProps {
 export function AgregarJugador({ equipoId, torneoId, onSuccess }: AgregarJugadorProps) {
   const [selectedUserId, setSelectedUserId] = useState<string>('none');
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: jugadoresDisponibles = [] } = useQuery({
     queryKey: ['jugadores-disponibles', equipoId, torneoId],
@@ -25,6 +26,12 @@ export function AgregarJugador({ equipoId, torneoId, onSuccess }: AgregarJugador
   const agregarJugadorMutation = useMutation({
     mutationFn: () => equiposService.addToPlantilla(equipoId, Number(selectedUserId), torneoId),
     onSuccess: () => {
+      // Invalidar todas las queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ['plantilla', equipoId, torneoId] });
+      queryClient.invalidateQueries({ queryKey: ['jugadores-disponibles', equipoId, torneoId] });
+      queryClient.invalidateQueries({ queryKey: ['equipos', torneoId] });
+      queryClient.invalidateQueries({ queryKey: ['equipos'] });
+      
       toast({
         title: 'Jugador agregado',
         description: 'El jugador ha sido agregado al equipo exitosamente.',

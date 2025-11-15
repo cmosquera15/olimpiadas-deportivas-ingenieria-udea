@@ -37,13 +37,12 @@ export function PlantillaEquipo({ equipo, canEdit }: PlantillaEquipoProps) {
     mutationFn: (usuariosPorEquipoId: number) =>
       equiposService.removeFromPlantilla(usuariosPorEquipoId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['plantilla', equipo.id] });
-      // Refrescar listado de equipos para actualizar integrantesCount en tarjetas
-      if (equipo.torneoId) {
-        queryClient.invalidateQueries({ queryKey: ['equipos', equipo.torneoId] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ['equipos'] });
-      }
+      // Invalidar todas las queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ['plantilla', equipo.id, equipo.torneoId] });
+      queryClient.invalidateQueries({ queryKey: ['jugadores-disponibles', equipo.id, equipo.torneoId] });
+      queryClient.invalidateQueries({ queryKey: ['equipos', equipo.torneoId] });
+      queryClient.invalidateQueries({ queryKey: ['equipos'] });
+      
       toast({
         title: 'Jugador removido',
         description: 'El jugador ha sido removido del equipo exitosamente.',

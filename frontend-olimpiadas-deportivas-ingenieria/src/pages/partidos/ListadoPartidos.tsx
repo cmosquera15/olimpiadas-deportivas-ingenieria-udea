@@ -167,18 +167,21 @@ export default function ListadoPartidos() {
         ) : data && data.content.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data.content.map((partido) => (
-              <Link key={partido.id} to={`/partidos/${partido.id}`} className="block h-full">
-                <Card className="h-full flex flex-col transition-all hover:shadow-lg hover:border-primary/50">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="text-xl line-clamp-2 break-words hyphens-auto">{partido.torneo.nombre}</CardTitle>
-                        <CardDescription className="flex items-center gap-2">
-                          <Badge variant="outline" className="font-normal">
+              <Link key={partido.id} to={`/partidos/${partido.id}`} className="block h-full group">
+                <Card className="relative h-full flex flex-col transition-all duration-300 hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 overflow-hidden">
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  <CardHeader className="pb-3 relative z-10">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1 flex-1">
+                        <CardTitle className="text-lg font-bold line-clamp-2 break-words hyphens-auto group-hover:text-primary transition-colors">{partido.torneo.nombre}</CardTitle>
+                        <CardDescription className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline" className="font-normal text-xs">
                             {partido.fase?.nombre}
                           </Badge>
                           {partido.grupo && (
-                            <Badge variant="outline" className="font-normal">
+                            <Badge variant="outline" className="font-normal text-xs">
                               {partido.grupo.nombre}
                             </Badge>
                           )}
@@ -190,26 +193,33 @@ export default function ListadoPartidos() {
                           partido.estado === 'APLAZADO' ? 'destructive' : 
                           'secondary'
                         }
+                        className="shrink-0"
                       >
-                        {partido.estado === 'TERMINADO' ? 'Terminado' :
-                         partido.estado === 'APLAZADO' ? 'Aplazado' :
-                         'Programado'}
+                        {partido.estado === 'TERMINADO' ? '✅ Terminado' :
+                         partido.estado === 'APLAZADO' ? '⏸️ Aplazado' :
+                         '📅 Programado'}
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4 flex-1">
-                    <div className="grid gap-3 md:grid-cols-3 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>{formatDateTime(new Date(partido.fecha + 'T' + partido.hora))}</span>
+                  <CardContent className="space-y-4 flex-1 relative z-10">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                          <Calendar className="h-4 w-4 text-primary" />
+                        </div>
+                        <span className="font-medium">{formatDateTime(new Date(partido.fecha + 'T' + partido.hora))}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary/10">
+                          <MapPin className="h-4 w-4 text-secondary" />
+                        </div>
                         <span>{partido.lugar.nombre}</span>
                       </div>
                       {partido.arbitro && (
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/10">
+                            <User className="h-4 w-4 text-accent" />
+                          </div>
                           <span>{partido.arbitro.nombre}</span>
                         </div>
                       )}

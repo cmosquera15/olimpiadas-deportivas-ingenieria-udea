@@ -91,30 +91,47 @@ export default function Dashboard() {
 
         <h2 className="sr-only">Accesos rápidos</h2>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {quickLinks.map((link) => (
-            <Link key={link.href} to={link.href}>
-              <Card className="transition-all hover:shadow-lg hover:border-primary/40">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <link.icon className={`h-6 w-6 sm:h-8 sm:w-8 ${link.color}`} />
+          {quickLinks.map((link, index) => (
+            <Link key={link.href} to={link.href} className="group">
+              <Card className="relative h-full transition-all duration-300 hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 overflow-hidden">
+                {/* Animated gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                {/* Decorative number badge */}
+                <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary/50 group-hover:scale-110 transition-transform">
+                  {index + 1}
+                </div>
+                
+                <CardHeader className="relative z-10">
+                  <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 ring-2 ring-primary/10 ring-offset-2 ring-offset-background group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                    <link.icon className={`h-7 w-7 ${link.color}`} />
                   </div>
-                  <div className="text-base sm:text-lg font-semibold">{link.title}</div>
-                  <CardDescription className="text-xs sm:text-sm">{link.description}</CardDescription>
+                  <div className="text-lg font-bold group-hover:text-primary transition-colors">{link.title}</div>
+                  <CardDescription className="text-sm">{link.description}</CardDescription>
                 </CardHeader>
               </Card>
             </Link>
           ))}
         </div>
 
-        <Card>
+        <Card className="relative overflow-hidden">
+          {/* Decorative gradient */}
+          <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-primary/5 to-transparent" />
+          
           <CardHeader>
-            <CardTitle>Información del Sistema</CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-primary/10">
+                <Trophy className="h-5 w-5 text-primary" />
+              </div>
+              <CardTitle>Información del Sistema</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              <strong>Rol:</strong> {role}
-            </p>
-            <p className="text-sm text-muted-foreground">
+          <CardContent className="space-y-3 relative z-10">
+            <div className="flex items-center gap-2 rounded-lg bg-muted/50 p-3">
+              <Badge variant="outline" className="font-semibold">{role}</Badge>
+              <span className="text-sm text-muted-foreground">Tu rol actual</span>
+            </div>
+            <p className="text-sm leading-relaxed text-muted-foreground">
               {perfil?.rolDescripcion || 'Este sistema permite gestionar torneos deportivos, programar partidos, administrar equipos y consultar posiciones en tiempo real.'}
             </p>
           </CardContent>

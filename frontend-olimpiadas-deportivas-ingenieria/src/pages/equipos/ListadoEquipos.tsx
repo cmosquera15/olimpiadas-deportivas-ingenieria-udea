@@ -294,20 +294,31 @@ export default function ListadoEquipos() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {equipos?.map((equipo) => (
-              <Link key={equipo.id} to={`/equipos/${equipo.id}`}>
-                <Card className="h-full transition-all hover:shadow-md">
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-3">
-                      <Shield className="h-8 w-8 text-primary flex-shrink-0" />
-                      <Badge variant="secondary">{equipo.integrantesCount} Integrantes</Badge>
+              <Link key={equipo.id} to={`/equipos/${equipo.id}`} className="group">
+                <Card className="relative h-full transition-all duration-300 hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 overflow-hidden">
+                  {/* Gradient overlay on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  {/* Decorative corner accent */}
+                  <div className="absolute right-0 top-0 h-20 w-20 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
+                  
+                  <CardHeader className="relative z-10">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 ring-2 ring-primary/20 ring-offset-2 ring-offset-background group-hover:scale-110 transition-transform duration-300">
+                        <Shield className="h-6 w-6 text-primary" />
+                      </div>
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {equipo.integrantesCount}
+                      </Badge>
                     </div>
-                    <CardTitle className="text-xl leading-tight min-h-[3rem]">{equipo.nombre}</CardTitle>
+                    <CardTitle className="text-xl font-bold leading-tight min-h-[3rem] group-hover:text-primary transition-colors">{equipo.nombre}</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <Button variant="outline" size="sm" className="w-full">
-                      Ver Detalles
+                  <CardContent className="relative z-10">
+                    <Button variant="outline" size="sm" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      Ver Detalles →
                     </Button>
                   </CardContent>
                 </Card>

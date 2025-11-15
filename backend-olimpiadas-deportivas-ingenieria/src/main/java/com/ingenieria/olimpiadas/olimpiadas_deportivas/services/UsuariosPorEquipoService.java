@@ -107,7 +107,7 @@ public class UsuariosPorEquipoService {
         boolean esMujer = upe.getUsuario() != null
                 && upe.getUsuario().getGenero() != null
                 && upe.getUsuario().getGenero().getNombre() != null
-                && upe.getUsuario().getGenero().getNombre().toUpperCase().startsWith("F");
+                && upe.getUsuario().getGenero().getNombre().toUpperCase().startsWith("M");
 
         int min = reglaService.minJugadores(equipo);
         long totalDespues   = totalAntes - 1;
