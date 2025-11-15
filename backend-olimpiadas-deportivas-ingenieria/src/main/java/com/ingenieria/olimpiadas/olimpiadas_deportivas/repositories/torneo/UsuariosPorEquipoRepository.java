@@ -60,5 +60,20 @@ public interface UsuariosPorEquipoRepository extends JpaRepository<UsuariosPorEq
            """)
     List<UsuariosPorEquipo> findByEquipoAndTorneo(Integer equipoId, Integer torneoId);
 
+    @Query("""
+           select upe
+           from UsuariosPorEquipo upe
+           where upe.torneo.id = :torneoId
+           """)
+    List<UsuariosPorEquipo> findByTorneoId(Integer torneoId);
+
+    @Query("""
+           select upe
+           from UsuariosPorEquipo upe
+           where upe.usuario.id = :usuarioId
+             and upe.torneo.id = :torneoId
+           """)
+    List<UsuariosPorEquipo> findByUsuarioIdAndTorneoId(Integer usuarioId, Integer torneoId);
+
     boolean existsByUsuarioIdAndEquipoIdAndTorneoId(Integer usuarioId, Integer equipoId, Integer torneoId);
 }
