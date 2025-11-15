@@ -70,6 +70,7 @@ export function MarcadorForm({ partido, onSuccess }: MarcadorFormProps) {
     onSuccess: () => {
       // Invalidate posiciones to update the standings table
       queryClient.invalidateQueries({ queryKey: ['posiciones'] });
+      queryClient.invalidateQueries({ queryKey: ['partidos'] });
       toast({
         title: 'Marcador actualizado',
         description: 'El marcador se ha actualizado correctamente',

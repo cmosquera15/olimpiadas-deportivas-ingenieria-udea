@@ -57,7 +57,10 @@ export const equiposService = {
   ): Promise<UsuarioPorEquipo> => {
     const { data } = await axiosInstance.post<UsuarioPorEquipo>(
       `/equipos/${equipoId}/plantilla`,
-      { usuarioId, torneoId }
+      null,
+      {
+        params: { usuarioId, torneoId },
+      }
     );
     return data;
   },

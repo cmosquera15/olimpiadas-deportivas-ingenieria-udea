@@ -250,9 +250,11 @@ export interface PartidoDetail {
   equipoLocalId?: number;
   equipoLocalNombre?: string;
   equipoLocalPuntos?: number | null;
+  idEquipoLocalPorPartido?: number;
   equipoVisitanteId?: number;
   equipoVisitanteNombre?: string;
   equipoVisitantePuntos?: number | null;
+  idEquipoVisitantePorPartido?: number;
   observaciones?: string;
   estado?: 'PROGRAMADO' | 'TERMINADO' | 'APLAZADO';
 }
@@ -295,10 +297,9 @@ export interface Evento {
 }
 
 export interface EventoCreateRequest {
-  partidoId: number;
-  tipoEventoId: number;
-  usuarioId: number;
-  observaciones?: string;
+  id_equipo_por_partido: number;
+  id_tipo_evento: number;
+  id_usuario_jugador: number;
 }
 
 // Posiciones types

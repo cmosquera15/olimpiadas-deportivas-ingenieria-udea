@@ -158,11 +158,23 @@ export function EventosPanel({ partido }: EventosPanelProps) {
       return;
     }
 
+    const equipoPorPartidoId = equipoSeleccionado === '1' 
+      ? partido.idEquipoLocalPorPartido 
+      : partido.idEquipoVisitantePorPartido;
+
+    if (!equipoPorPartidoId) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudo identificar el equipo en este partido',
+      });
+      return;
+    }
+
     createMutation.mutate({
-      partidoId: partido.id,
-      tipoEventoId: Number(tipoEventoId),
-      usuarioId: Number(usuarioId),
-      observaciones: observaciones || undefined,
+      id_equipo_por_partido: equipoPorPartidoId,
+      id_tipo_evento: Number(tipoEventoId),
+      id_usuario_jugador: Number(usuarioId),
     });
   };
 

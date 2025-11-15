@@ -275,6 +275,7 @@ public class PartidoService {
                 .stream().sorted(Comparator.comparing(EquiposPorPartido::getId)).toList();
 
         Integer locId = null, visId = null, locPts = null, visPts = null;
+        Integer idEppLoc = null, idEppVis = null;
         String locNom = null, visNom = null;
 
         if (epps.size() >= 1) {
@@ -282,15 +283,17 @@ public class PartidoService {
             locId  = e1.getEquipo().getId();
             locNom = e1.getEquipo().getNombre();
             locPts = e1.getPuntos();
+            idEppLoc = e1.getId();
         }
         if (epps.size() >= 2) {
             var e2 = epps.get(1);
             visId  = e2.getEquipo().getId();
             visNom = e2.getEquipo().getNombre();
             visPts = e2.getPuntos();
+            idEppVis = e2.getId();
         }
 
-        return mapper.toDetailDTO(p, locId, locNom, locPts, visId, visNom, visPts);
+        return mapper.toDetailDTO(p, locId, locNom, locPts, idEppLoc, visId, visNom, visPts, idEppVis);
     }
 
     @Transactional

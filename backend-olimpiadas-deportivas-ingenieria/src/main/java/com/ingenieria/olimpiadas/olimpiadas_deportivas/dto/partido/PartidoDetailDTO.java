@@ -23,9 +23,11 @@ public record PartidoDetailDTO(
         Integer equipoLocalId,
         String equipoLocalNombre,
         Integer equipoLocalPuntos,
+        Integer idEquipoLocalPorPartido,
         Integer equipoVisitanteId,
         String equipoVisitanteNombre,
         Integer equipoVisitantePuntos,
+        Integer idEquipoVisitantePorPartido,
         Integer idOlimpiada,
         String olimpiadaNombre,
         String estado

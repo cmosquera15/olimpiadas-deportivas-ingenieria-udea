@@ -37,6 +37,7 @@ export default function DetallePartido() {
         description: 'El estado del partido se actualizó correctamente',
       });
       queryClient.invalidateQueries({ queryKey: ['partido', id] });
+      queryClient.invalidateQueries({ queryKey: ['partidos'] });
       queryClient.invalidateQueries({ queryKey: ['posiciones'] });
     },
     onError: (error: unknown) => {

@@ -93,8 +93,8 @@ public interface PartidoMapper {
     // ---- DETAIL
     default PartidoDetailDTO toDetailDTO(
             Partido p,
-            Integer equipoLocalId, String equipoLocalNombre, Integer equipoLocalPuntos,
-            Integer equipoVisitanteId, String equipoVisitanteNombre, Integer equipoVisitantePuntos
+            Integer equipoLocalId, String equipoLocalNombre, Integer equipoLocalPuntos, Integer idEquipoLocalPorPartido,
+            Integer equipoVisitanteId, String equipoVisitanteNombre, Integer equipoVisitantePuntos, Integer idEquipoVisitantePorPartido
     ) {
         if (p == null) return null;
 
@@ -127,9 +127,11 @@ public interface PartidoMapper {
                 equipoLocalId,
                 equipoLocalNombre,
                 equipoLocalPuntos,
+                idEquipoLocalPorPartido,
                 equipoVisitanteId,
                 equipoVisitanteNombre,
                 equipoVisitantePuntos,
+                idEquipoVisitantePorPartido,
                 (p.getTorneo() != null && p.getTorneo().getOlimpiada() != null) ? p.getTorneo().getOlimpiada().getId() : null,
                 olimpiadaNombre,
                 estado
@@ -140,6 +142,7 @@ public interface PartidoMapper {
         if (p == null) return null;
 
         Integer localId = null, visId = null, ptsLoc = null, ptsVis = null;
+        Integer idEppLocal = null, idEppVis = null;
         String  localNm = null, visNm = null;
 
         if (epps != null && !epps.isEmpty()) {
@@ -148,14 +151,16 @@ public interface PartidoMapper {
                 localId = (eq != null) ? eq.getId() : null;
                 localNm = (eq != null) ? eq.getNombre() : null;
                 ptsLoc  = epps.get(0).getPuntos();
+                idEppLocal = epps.get(0).getId();
             }
             if (epps.size() >= 2) {
                 Equipo eq = epps.get(1).getEquipo();
                 visId = (eq != null) ? eq.getId() : null;
                 visNm = (eq != null) ? eq.getNombre() : null;
                 ptsVis = epps.get(1).getPuntos();
+                idEppVis = epps.get(1).getId();
             }
         }
-        return toDetailDTO(p, localId, localNm, ptsLoc, visId, visNm, ptsVis);
+        return toDetailDTO(p, localId, localNm, ptsLoc, idEppLocal, visId, visNm, ptsVis, idEppVis);
     }
 }
