@@ -44,7 +44,7 @@ public interface EventoRepository extends JpaRepository<Evento, Integer> {
             join ev.equipoPorPartido epp
             join epp.partido p
           where p.torneo.id = :torneoId
-            and ev.usuario.id = :usuarioId
+            and ev.usuarioJugador.id = :usuarioId
             and upper(te.nombre) like '%GOL%'
        """)
     Long countGolesByUsuarioInTorneo(Integer torneoId, Integer usuarioId);
