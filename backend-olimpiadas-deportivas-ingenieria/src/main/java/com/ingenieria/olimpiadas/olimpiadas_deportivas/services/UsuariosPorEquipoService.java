@@ -86,40 +86,16 @@ public class UsuariosPorEquipoService {
     }
 
     /**
-     * Eliminar jugador SIN romper reglas:
-     * - Si al eliminar quedas por debajo del mínimo => BLOQUEA
-     * - Si al eliminar se queda sin mujeres y el deporte lo exige => BLOQUEA
+     * Eliminar jugador del equipo.
+     * Nota: Se permite la eliminación sin validar mínimos o presencia de mujer para
+     * facilitar el ajuste de plantillas. Las validaciones de mínimos se aplican
+     * al momento de competir/inscribir oficialmente, no en edición de plantilla.
      */
     @Transactional
     public void removerJugador(Integer usuariosPorEquipoId) {
         UsuariosPorEquipo upe = upeRepo.findById(usuariosPorEquipoId)
                 .orElseThrow(() -> new NotFoundException("Registro de usuario por equipo no encontrado"));
-
-        Integer equipoId = upe.getEquipo().getId();
-        Integer torneoId = upe.getTorneo().getId();
-
-        Equipo equipo = upe.getEquipo();
-
-        // Conteos actuales
-        long totalAntes = upeRepo.countByEquipoIdAndTorneoId(equipoId, torneoId);
-        long mujeresAntes = upeRepo.countMujeresEnEquipoTorneo(equipoId, torneoId);
-
-        boolean esMujer = upe.getUsuario() != null
-                && upe.getUsuario().getGenero() != null
-                && upe.getUsuario().getGenero().getNombre() != null
-                && upe.getUsuario().getGenero().getNombre().toUpperCase().startsWith("M");
-
-        int min = reglaService.minJugadores(equipo);
-        long totalDespues   = totalAntes - 1;
-        long mujeresDespues = esMujer ? (mujeresAntes - 1) : mujeresAntes;
-
-        if (totalDespues < min) {
-            throw new BadRequestException("No se puede eliminar: el equipo quedaría por debajo del mínimo (" + min + ")");
-        }
-        if (reglaService.requiereMujer(equipo) && mujeresDespues <= 0) {
-            throw new BadRequestException("No se puede eliminar: debe quedar al menos una mujer en la plantilla.");
-        }
-
+        // Eliminación directa para permitir edición libre de plantilla
         upeRepo.delete(upe);
     }
 
