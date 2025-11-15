@@ -17,7 +17,6 @@ import DetallePartido from "./pages/partidos/DetallePartido";
 import ListadoEquipos from "./pages/equipos/ListadoEquipos";
 import { DetalleEquipo } from "./pages/equipos/DetalleEquipo";
 import TablaPosiciones from "./pages/posiciones/TablaPosiciones";
-import TablaGoleadores from "./pages/estadisticas/TablaGoleadores";
 import Usuarios from "./pages/admin/Usuarios";
 import PerfilUsuario from "./pages/perfil/PerfilUsuario";
 
@@ -116,14 +115,6 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <TablaPosiciones />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/goleadores"
-            element={
-              <ProtectedRoute>
-                <TablaGoleadores />
               </ProtectedRoute>
             }
           />

@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.AsignarEquiposRequest;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.ClasificacionDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.MarcadorUpdateDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.PartidoCreateDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.PartidoDetailDTO;
@@ -15,13 +16,22 @@ import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.PartidoEstado
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.PartidoListViewDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.PartidoUpdateDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.PartidoService;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.GeneradorLlavesService;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/partidos")
 public class PartidoController {
 
     private final PartidoService svc;
-    public PartidoController(PartidoService svc) { this.svc = svc; }
+    private final GeneradorLlavesService generadorLlavesService;
+    
+    public PartidoController(PartidoService svc, GeneradorLlavesService generadorLlavesService) { 
+        this.svc = svc;
+        this.generadorLlavesService = generadorLlavesService;
+    }
 
     @GetMapping
     public ResponseEntity<Page<PartidoListViewDTO>> listar(
@@ -77,5 +87,22 @@ public class PartidoController {
     public ResponseEntity<PartidoDetailDTO> actualizarEstado(@PathVariable Integer id,
                                                               @Valid @RequestBody PartidoEstadoUpdateDTO req) {
         return ResponseEntity.ok(svc.actualizarEstado(id, req.estado()));
+    }
+
+    @GetMapping("/torneo/{torneoId}/puede-generar-llaves")
+    public ResponseEntity<Map<String, Object>> puedeGenerarLlaves(@PathVariable Integer torneoId) {
+        return ResponseEntity.ok(generadorLlavesService.verificarEstadoFaseGrupos(torneoId));
+    }
+
+    @GetMapping("/torneo/{torneoId}/clasificacion")
+    public ResponseEntity<List<ClasificacionDTO>> obtenerClasificacion(@PathVariable Integer torneoId) {
+        return ResponseEntity.ok(generadorLlavesService.obtenerClasificacion(torneoId));
+    }
+
+    @PostMapping("/torneo/{torneoId}/generar-llaves")
+    @PreAuthorize("hasAuthority('Partidos_Editar')")
+    public ResponseEntity<Map<String, String>> generarLlaves(@PathVariable Integer torneoId) {
+        generadorLlavesService.generarLlaves(torneoId);
+        return ResponseEntity.ok(Map.of("mensaje", "Llaves generadas exitosamente"));
     }
 }

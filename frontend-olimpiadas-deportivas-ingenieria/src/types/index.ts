@@ -346,6 +346,24 @@ export interface TablaPosiciones {
   posiciones: EquipoPosicionDTO[];
 }
 
+// Clasificación y llaves
+export interface ClasificacionDTO {
+  equipoId: number;
+  equipoNombre: string;
+  posicionGeneral: number | null;
+  posicionGrupo: number;
+  grupoNombre: string | null;
+  clasificado: boolean;
+  razonClasificacion: string | null; // "1º Grupo A", "2º Grupo B", "Mejor 3º", etc.
+}
+
+export interface EstadoFaseGruposDTO {
+  puedeGenerar: boolean;
+  partidosJugados: number;
+  partidosTotales: number;
+  mensaje: string;
+}
+
 // Pagination types
 export interface PageRequest {
   page?: number;

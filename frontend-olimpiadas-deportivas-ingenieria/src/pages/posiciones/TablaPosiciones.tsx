@@ -22,10 +22,15 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, Trophy, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import type { PageResponse, TorneoListDTO, TablaPosiciones, EquipoPosicionDTO, Partido } from '@/types';
+import type { PageResponse, TorneoListDTO, TablaPosiciones, EquipoPosicionDTO, Partido, ClasificacionDTO, EstadoFaseGruposDTO } from '@/types';
+import { estadisticasService, type Goleador } from '@/services/estadisticas.service';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
+import { TournamentBracket } from '@/components/TournamentBracket';
 
 export default function TablaPosiciones() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { toast } = useToast();
   const [torneoId, setTorneoId] = useState<number | undefined>(() => {
     const param = searchParams.get('torneoId');
     return param ? Number(param) : undefined;
@@ -77,10 +82,45 @@ export default function TablaPosiciones() {
     return fases.find((f) => f.nombre === faseNombre)?.id;
   }, [fase, fases]);
 
+  // Get IDs for all knockout phases
+  const cuartosFaseId = React.useMemo(() => {
+    if (!fases) return undefined;
+    return fases.find((f) => f.nombre === 'Cuartos de Final')?.id;
+  }, [fases]);
+
+  const semifinalFaseId = React.useMemo(() => {
+    if (!fases) return undefined;
+    return fases.find((f) => f.nombre === 'Semifinal')?.id;
+  }, [fases]);
+
+  const finalFaseId = React.useMemo(() => {
+    if (!fases) return undefined;
+    return fases.find((f) => f.nombre === 'Final')?.id;
+  }, [fases]);
+
   const { data: partidosData, isLoading: isLoadingPartidos } = useQuery<PageResponse<Partido>>({
     queryKey: ['partidos', torneoId, faseId],
     queryFn: () => partidosService.getPartidos({ torneoId: torneoId!, faseId, size: 50 }),
     enabled: !!torneoId && fase !== 'grupos' && !!faseId,
+  });
+
+  // Load all knockout phase matches for bracket view
+  const { data: cuartosData } = useQuery<PageResponse<Partido>>({
+    queryKey: ['partidos-cuartos', torneoId, cuartosFaseId],
+    queryFn: () => partidosService.getPartidos({ torneoId: torneoId!, faseId: cuartosFaseId, size: 50 }),
+    enabled: !!torneoId && fase !== 'grupos' && !!cuartosFaseId,
+  });
+
+  const { data: semifinalesData } = useQuery<PageResponse<Partido>>({
+    queryKey: ['partidos-semifinales', torneoId, semifinalFaseId],
+    queryFn: () => partidosService.getPartidos({ torneoId: torneoId!, faseId: semifinalFaseId, size: 50 }),
+    enabled: !!torneoId && fase !== 'grupos' && !!semifinalFaseId,
+  });
+
+  const { data: finalData } = useQuery<PageResponse<Partido>>({
+    queryKey: ['partidos-final', torneoId, finalFaseId],
+    queryFn: () => partidosService.getPartidos({ torneoId: torneoId!, faseId: finalFaseId, size: 50 }),
+    enabled: !!torneoId && fase !== 'grupos' && !!finalFaseId,
   });
 
   // Sort posiciones in the UI according to the displayed tie-breaker rules
@@ -93,6 +133,58 @@ export default function TablaPosiciones() {
       return (a.fairPlay ?? 0) - (b.fairPlay ?? 0); // lower fairPlay is better
     });
   }, [tabla]);
+
+  // Determine if selected torneo is fútbol (by nombre)
+  const selectedTorneo = React.useMemo(() => {
+    return torneos?.content.find((t) => t.id === torneoId);
+  }, [torneos, torneoId]);
+  const isFutbol = React.useMemo(() => {
+    const nombre = selectedTorneo?.deporteNombre?.toLowerCase() ?? '';
+    return nombre.includes('futbol') || nombre.includes('fútbol');
+  }, [selectedTorneo]);
+
+  // Goleadores query (only for fútbol)
+  const { data: goleadores, isLoading: isLoadingGoleadores } = useQuery<Goleador[]>({
+    queryKey: ['goleadores', torneoId],
+    queryFn: () => estadisticasService.getGoleadores(torneoId!),
+    enabled: !!torneoId && !!isFutbol,
+  });
+
+  // Estado de fase de grupos (para habilitar botón de generar llaves)
+  const { data: estadoFaseGrupos } = useQuery<EstadoFaseGruposDTO>({
+    queryKey: ['puede-generar-llaves', torneoId],
+    queryFn: () => partidosService.puedeGenerarLlaves(torneoId!),
+    enabled: !!torneoId && fase === 'grupos',
+    refetchInterval: 30000, // refetch cada 30s
+  });
+
+  // Clasificación de equipos
+  const { data: clasificacion } = useQuery<ClasificacionDTO[]>({
+    queryKey: ['clasificacion', torneoId],
+    queryFn: () => partidosService.obtenerClasificacion(torneoId!),
+    enabled: !!torneoId && fase === 'grupos',
+  });
+
+  // Handler para generar llaves
+  const handleGenerarLlaves = async () => {
+    if (!torneoId) return;
+    
+    try {
+      await partidosService.generarLlaves(torneoId);
+      toast({
+        title: "Llaves generadas",
+        description: "Las llaves de eliminación directa han sido generadas exitosamente.",
+      });
+      // Refetch para actualizar estado
+      window.location.reload();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "No se pudieron generar las llaves",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <AppLayout>
@@ -215,8 +307,26 @@ export default function TablaPosiciones() {
         ) : fase === 'grupos' && tabla && sortedPosiciones.length > 0 ? (
           <Card>
             <CardHeader>
-              <CardTitle>Posiciones {tabla?.grupoNombre ? `- ${tabla.grupoNombre}` : ''}</CardTitle>
-              <CardDescription>PJ=Partidos Jugados, PG=Ganados, PE=Empatados, PP=Perdidos, GF=Goles a Favor, GC=Goles en Contra, GD=Diferencia de Goles, PTS=Puntos</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Posiciones {tabla?.grupoNombre ? `- ${tabla.grupoNombre}` : ''}</CardTitle>
+                  <CardDescription>PJ=Partidos Jugados, PG=Ganados, PE=Empatados, PP=Perdidos, GF=Goles a Favor, GC=Goles en Contra, GD=Diferencia de Goles, PTS=Puntos</CardDescription>
+                </div>
+                {estadoFaseGrupos && (
+                  <div className="flex flex-col items-end gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      {estadoFaseGrupos.partidosJugados}/{estadoFaseGrupos.partidosTotales} partidos finalizados
+                    </p>
+                    <Button
+                      onClick={handleGenerarLlaves}
+                      disabled={!estadoFaseGrupos.puedeGenerar}
+                      size="sm"
+                    >
+                      {estadoFaseGrupos.puedeGenerar ? 'Generar Llaves' : 'Fase de grupos en curso'}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto rounded-md border bg-card">
@@ -225,6 +335,7 @@ export default function TablaPosiciones() {
                     <TableRow>
                       <TableHead className="w-12">#</TableHead>
                       <TableHead>Equipo</TableHead>
+                      <TableHead className="w-32">Estado</TableHead>
                       <TableHead className="text-center">PJ</TableHead>
                       <TableHead className="text-center">PG</TableHead>
                       <TableHead className="text-center">PE</TableHead>
@@ -237,21 +348,33 @@ export default function TablaPosiciones() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortedPosiciones.map((posicion, index) => (
-                      <TableRow key={`${posicion.equipoId}-${index}`}>
-                        <TableCell className="font-medium">{index + 1}</TableCell>
-                        <TableCell className="font-medium">{posicion.equipoNombre || 'Sin nombre'}</TableCell>
-                        <TableCell className="text-center">{posicion.pj}</TableCell>
-                        <TableCell className="text-center">{posicion.pg}</TableCell>
-                        <TableCell className="text-center">{posicion.pe}</TableCell>
-                        <TableCell className="text-center">{posicion.pp}</TableCell>
-                        <TableCell className="text-center">{posicion.gf}</TableCell>
-                        <TableCell className="text-center">{posicion.gc}</TableCell>
-                        <TableCell className="text-center">{posicion.gd > 0 ? '+' : ''}{posicion.gd}</TableCell>
-                        <TableCell className="text-center font-bold text-primary">{posicion.pts}</TableCell>
-                        <TableCell className="text-center">{(posicion.fairPlay ?? 0).toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
+                    {sortedPosiciones.map((posicion, index) => {
+                      const clasificacionInfo = clasificacion?.find(c => c.equipoId === posicion.equipoId);
+                      return (
+                        <TableRow key={`${posicion.equipoId}-${index}`} className={clasificacionInfo?.clasificado ? 'bg-green-50/50 dark:bg-green-950/20' : ''}>
+                          <TableCell className="font-medium">{index + 1}</TableCell>
+                          <TableCell className="font-medium">{posicion.equipoNombre || 'Sin nombre'}</TableCell>
+                          <TableCell>
+                            {clasificacionInfo?.clasificado ? (
+                              <Badge variant="default" className="bg-green-600 text-white">
+                                {clasificacionInfo.razonClasificacion}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">{posicion.pj}</TableCell>
+                          <TableCell className="text-center">{posicion.pg}</TableCell>
+                          <TableCell className="text-center">{posicion.pe}</TableCell>
+                          <TableCell className="text-center">{posicion.pp}</TableCell>
+                          <TableCell className="text-center">{posicion.gf}</TableCell>
+                          <TableCell className="text-center">{posicion.gc}</TableCell>
+                          <TableCell className="text-center">{posicion.gd > 0 ? '+' : ''}{posicion.gd}</TableCell>
+                          <TableCell className="text-center font-bold text-primary">{posicion.pts}</TableCell>
+                          <TableCell className="text-center">{(posicion.fairPlay ?? 0).toFixed(2)}</TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
@@ -262,6 +385,47 @@ export default function TablaPosiciones() {
             <CardContent className="py-12 text-center">
               <Trophy className="mx-auto h-12 w-12 text-muted-foreground" />
               <p className="mt-4 text-muted-foreground">No hay datos de posiciones disponibles</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Goleadores (solo para fútbol) */}
+        {torneoId && isFutbol && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Tabla de Goleadores</CardTitle>
+              <CardDescription>Top anotadores del torneo seleccionado</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingGoleadores ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : goleadores && goleadores.length > 0 ? (
+                <div className="space-y-3">
+                  {goleadores.slice(0, 10).map((g, idx) => (
+                    <div
+                      key={`${g.usuarioId}-${idx}`}
+                      className="flex items-center justify-between rounded-md border p-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 text-center font-semibold">{idx + 1}</span>
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={g.fotoUrl ?? undefined} alt={g.nombreJugador} />
+                          <AvatarFallback>{g.nombreJugador?.charAt(0) ?? 'J'}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium leading-none">{g.nombreJugador}</p>
+                          <p className="text-xs text-muted-foreground">{g.equipoNombre}</p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="text-base font-bold">{g.totalGoles}</Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Aún no hay goles registrados.</p>
+              )}
             </CardContent>
           </Card>
         )}
@@ -285,7 +449,7 @@ export default function TablaPosiciones() {
           </Alert>
         )}
 
-        {/* Knockout Phase Matches View */}
+        {/* Knockout Phase Bracket View */}
         {fase !== 'grupos' && torneoId && (
           <>
             {!faseId ? (
@@ -300,55 +464,21 @@ export default function TablaPosiciones() {
               <div className="flex justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : partidosData && partidosData.content.length > 0 ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Partidos de {fase === 'cuartos' ? 'Cuartos de Final' : fase === 'semifinal' ? 'Semifinal' : 'Final'}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {partidosData.content.map((partido) => (
-                      <div key={partido.id} className="rounded-lg border p-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                          <div className="text-right">
-                            <p className="font-semibold text-lg">{partido.equipoLocal?.nombre || 'Por definir'}</p>
-                            {partido.puntosLocal !== null && partido.puntosLocal !== undefined && (
-                              <Badge variant="outline" className="mt-1">{partido.puntosLocal} pts</Badge>
-                            )}
-                          </div>
-                          <div className="text-center space-y-2">
-                            <p className="text-sm text-muted-foreground">
-                              {format(new Date(partido.fecha), 'PPP', { locale: es })}
-                            </p>
-                            <p className="text-sm font-medium">{partido.hora}</p>
-                            <p className="text-xs text-muted-foreground">{partido.lugar?.nombre}</p>
-                            {partido.puntosLocal !== null && partido.puntosLocal !== undefined && 
-                             partido.puntosVisitante !== null && partido.puntosVisitante !== undefined && (
-                              <div className="font-bold text-xl">
-                                {partido.puntosLocal} - {partido.puntosVisitante}
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-left">
-                            <p className="font-semibold text-lg">{partido.equipoVisitante?.nombre || 'Por definir'}</p>
-                            {partido.puntosVisitante !== null && partido.puntosVisitante !== undefined && (
-                              <Badge variant="outline" className="mt-1">{partido.puntosVisitante} pts</Badge>
-                            )}
-                          </div>
-                        </div>
-                        {partido.observaciones && (
-                          <p className="mt-2 text-sm text-muted-foreground italic">{partido.observaciones}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
             ) : (
               <Card>
-                <CardContent className="py-12 text-center">
-                  <Trophy className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <p className="mt-4 text-muted-foreground">No hay partidos programados para esta fase</p>
+                <CardHeader>
+                  <CardTitle>Llaves de Eliminación Directa</CardTitle>
+                  <CardDescription>
+                    Visualización del cuadro de eliminación directa del torneo
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TournamentBracket
+                    cuartos={cuartosData?.content || []}
+                    semifinales={semifinalesData?.content || []}
+                    final={finalData?.content || []}
+                    deporteNombre={selectedTorneo?.deporteNombre || ''}
+                  />
                 </CardContent>
               </Card>
             )}

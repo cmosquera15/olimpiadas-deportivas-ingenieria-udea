@@ -1,4 +1,4 @@
-import { Home, Trophy, Calendar, Users, BarChart3, Shield, Award, Target } from 'lucide-react';
+import { Home, Trophy, Calendar, Users, BarChart3, Shield, Award } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import {
   Sidebar,
@@ -49,12 +49,6 @@ const menuItems = [
     title: 'Posiciones',
     url: '/posiciones',
     icon: BarChart3,
-    roles: ['Administrador', 'Árbitro', 'Jugador'],
-  },
-  {
-    title: 'Goleadores',
-    url: '/goleadores',
-    icon: Target,
     roles: ['Administrador', 'Árbitro', 'Jugador'],
   },
   {

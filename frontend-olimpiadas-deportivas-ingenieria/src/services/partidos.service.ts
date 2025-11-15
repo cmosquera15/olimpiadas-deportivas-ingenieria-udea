@@ -7,6 +7,8 @@ import {
   ActualizarMarcadorRequest,
   PageResponse,
   PageRequest,
+  ClasificacionDTO,
+  EstadoFaseGruposDTO,
 } from '@/types';
 
 interface PartidosFilter extends PageRequest {
@@ -72,6 +74,22 @@ export const partidosService = {
 
   actualizarEstado: async (id: number, estado: string): Promise<PartidoDetail> => {
     const { data } = await axiosInstance.put<PartidoDetail>(`/partidos/${id}/estado`, { estado });
+    return data;
+  },
+
+  // Gestión de llaves y clasificación
+  puedeGenerarLlaves: async (torneoId: number): Promise<EstadoFaseGruposDTO> => {
+    const { data } = await axiosInstance.get<EstadoFaseGruposDTO>(`/partidos/torneo/${torneoId}/puede-generar-llaves`);
+    return data;
+  },
+
+  obtenerClasificacion: async (torneoId: number): Promise<ClasificacionDTO[]> => {
+    const { data } = await axiosInstance.get<ClasificacionDTO[]>(`/partidos/torneo/${torneoId}/clasificacion`);
+    return data;
+  },
+
+  generarLlaves: async (torneoId: number): Promise<{ mensaje: string }> => {
+    const { data} = await axiosInstance.post<{ mensaje: string }>(`/partidos/torneo/${torneoId}/generar-llaves`);
     return data;
   },
 };
