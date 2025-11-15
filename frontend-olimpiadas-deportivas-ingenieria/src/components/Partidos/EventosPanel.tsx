@@ -191,21 +191,25 @@ export function EventosPanel({ partido }: EventosPanelProps) {
       {/* Lista de eventos */}
       <div className="space-y-3">
         {eventos && eventos.length > 0 ? (
-          eventos.map((evento) => (
+          eventos.map((evento) => {
+            const tipoNombre = evento?.tipoEvento?.nombre ?? '—';
+            const jugadorNombre = evento?.usuario?.nombre ?? '—';
+            const puntosNeg = evento?.tipoEvento?.puntosNegativos ?? 0;
+            return (
             <div
               key={evento.id}
               className="flex items-start justify-between p-3 border rounded-lg"
             >
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">{evento.tipoEvento.nombre}</Badge>
-                  <span className="text-sm font-medium">{evento.usuario.nombre}</span>
+                  <Badge variant="outline">{tipoNombre}</Badge>
+                  <span className="text-sm font-medium">{jugadorNombre}</span>
                 </div>
                 {evento.observaciones && (
                   <p className="text-sm text-muted-foreground">{evento.observaciones}</p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Puntos negativos: {evento.tipoEvento.puntosNegativos}
+                  Puntos negativos: {puntosNeg}
                 </p>
               </div>
               <AlertDialog>
@@ -230,7 +234,8 @@ export function EventosPanel({ partido }: EventosPanelProps) {
                 </AlertDialogContent>
               </AlertDialog>
             </div>
-          ))
+            );
+          })
         ) : (
           <p className="text-center text-muted-foreground py-8">
             No hay eventos registrados para este partido

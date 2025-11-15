@@ -294,6 +294,13 @@ export interface Evento {
   observaciones?: string;
   tipoEvento: TipoEvento;
   usuario: Usuario;
+  // Backend flattened DTO compatibility fields
+  id_equipo_por_partido?: number;
+  id_usuario_jugador?: number;
+  nombreJugador?: string;
+  id_tipo_evento?: number;
+  nombreTipoEvento?: string;
+  puntosNegativos?: number;
 }
 
 export interface EventoCreateRequest {

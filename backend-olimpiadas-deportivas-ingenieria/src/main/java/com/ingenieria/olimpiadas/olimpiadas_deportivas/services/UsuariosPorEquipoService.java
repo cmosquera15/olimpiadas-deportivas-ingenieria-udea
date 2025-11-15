@@ -77,11 +77,8 @@ public class UsuariosPorEquipoService {
 
         try {
             UsuariosPorEquipo saved = upeRepo.save(nuevo);
-
-            long total = upeRepo.countByEquipoIdAndTorneoId(equipoId, torneoId);
-            long mujeres = upeRepo.countMujeresEnEquipoTorneo(equipoId, torneoId);
-            reglaService.validarPlantillaMinimos(equipo, total, mujeres);
-
+            // NO validar mínimos al agregar, solo al remover
+            // (permite construir plantilla gradualmente)
             return saved;
         } catch (DataIntegrityViolationException ex) {
             throw new BadRequestException("El usuario ya está inscrito en este equipo/torneo");

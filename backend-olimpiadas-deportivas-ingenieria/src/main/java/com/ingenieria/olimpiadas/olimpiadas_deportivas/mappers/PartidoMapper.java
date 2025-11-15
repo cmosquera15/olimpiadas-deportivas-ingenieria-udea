@@ -50,6 +50,8 @@ public interface PartidoMapper {
             }
         }
 
+        String estado = (p.getEstado() != null) ? p.getEstado().name() : "PROGRAMADO";
+
         return new PartidoListViewDTO(
                 p.getId(),
                 p.getFecha(),
@@ -63,7 +65,8 @@ public interface PartidoMapper {
                 equipoVisitante,
                 ptsLoc,
                 ptsVis,
-                olimpiada
+            olimpiada,
+            estado
         );
     }
 
