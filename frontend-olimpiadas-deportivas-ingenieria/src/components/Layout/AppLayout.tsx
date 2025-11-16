@@ -1,9 +1,8 @@
 import React from 'react';
 import { getAuthorities, getUserRole, getToken } from '@/lib/auth';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, LogOut, Moon, Sun, FileText } from 'lucide-react';
+import { LogOut, Moon, Sun, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { AppSidebar } from './AppSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuth } from '@/store/useAuth';
@@ -84,31 +83,15 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        {/* Desktop Sidebar */}
-        <div className="hidden md:block">
-          <AppSidebar />
-        </div>
+        {/* Sidebar (handles its own mobile/desktop behavior) */}
+        <AppSidebar />
 
         <div className="flex flex-1 flex-col">
           {/* Header */}
           <header className="sticky top-0 z-40 border-b bg-background">
             <div className="flex h-16 items-center gap-4 px-4 md:px-6">
-              {/* Desktop Sidebar Trigger */}
-              <div className="hidden md:block">
-                <SidebarTrigger />
-              </div>
-
-              {/* Mobile Menu */}
-              <Sheet>
-                <SheetTrigger asChild className="md:hidden">
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0">
-                  <AppSidebar />
-                </SheetContent>
-              </Sheet>
+              {/* Sidebar Trigger (visible on all breakpoints) */}
+              <SidebarTrigger className="md:mr-2" />
 
               {/* Logo swaps based on theme */}
               <Link to="/dashboard" className="flex items-center gap-2">
