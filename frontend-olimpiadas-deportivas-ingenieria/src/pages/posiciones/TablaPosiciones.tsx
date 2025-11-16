@@ -27,10 +27,13 @@ import { estadisticasService, type Goleador } from '@/services/estadisticas.serv
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { TournamentBracket } from '@/components/TournamentBracket';
+import { getUserRole } from '@/lib/auth';
 
 export default function TablaPosiciones() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
+  const userRole = getUserRole();
+  const canGenerateBrackets = userRole === 'Administrador';
   const [torneoId, setTorneoId] = useState<number | undefined>(() => {
     const param = searchParams.get('torneoId');
     return param ? Number(param) : undefined;
@@ -269,12 +272,14 @@ export default function TablaPosiciones() {
                 >
                   Fase de Grupos
                 </button>
-                <button
-                  className={`px-3 py-1 rounded border ${fase === 'cuartos' ? 'bg-primary text-primary-foreground' : 'bg-background'}`}
-                  onClick={() => setFase('cuartos')}
-                >
-                  Cuartos de Final
-                </button>
+                {!selectedTorneo?.deporteNombre?.toLowerCase().includes('baloncesto') && (
+                  <button
+                    className={`px-3 py-1 rounded border ${fase === 'cuartos' ? 'bg-primary text-primary-foreground' : 'bg-background'}`}
+                    onClick={() => setFase('cuartos')}
+                  >
+                    Cuartos de Final
+                  </button>
+                )}
                 <button
                   className={`px-3 py-1 rounded border ${fase === 'semifinal' ? 'bg-primary text-primary-foreground' : 'bg-background'}`}
                   onClick={() => setFase('semifinal')}
@@ -290,6 +295,17 @@ export default function TablaPosiciones() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Alert: Fase no configurada */}
+        {torneoId && fase !== 'grupos' && !faseId && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertTitle>Fase no configurada</AlertTitle>
+            <AlertDescription>
+              La fase seleccionada aún no ha sido definida.
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* Tabla de Posiciones (only for grupos phase) */}
@@ -312,7 +328,7 @@ export default function TablaPosiciones() {
                   <CardTitle>Posiciones {tabla?.grupoNombre ? `- ${tabla.grupoNombre}` : ''}</CardTitle>
                   <CardDescription>PJ=Partidos Jugados, PG=Ganados, PE=Empatados, PP=Perdidos, GF=Goles a Favor, GC=Goles en Contra, GD=Diferencia de Goles, PTS=Puntos</CardDescription>
                 </div>
-                {estadoFaseGrupos && (
+                {canGenerateBrackets && estadoFaseGrupos && (
                   <div className="flex flex-col items-end gap-2">
                     <p className="text-sm text-muted-foreground">
                       {estadoFaseGrupos.partidosJugados}/{estadoFaseGrupos.partidosTotales} partidos finalizados
@@ -450,17 +466,9 @@ export default function TablaPosiciones() {
         )}
 
         {/* Knockout Phase Bracket View */}
-        {fase !== 'grupos' && torneoId && (
+        {fase !== 'grupos' && torneoId && faseId && (
           <>
-            {!faseId ? (
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertTitle>Fase no configurada</AlertTitle>
-                <AlertDescription>
-                  La fase seleccionada aún no ha sido definida.
-                </AlertDescription>
-              </Alert>
-            ) : isLoadingPartidos ? (
+            {isLoadingPartidos ? (
               <div className="flex justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>

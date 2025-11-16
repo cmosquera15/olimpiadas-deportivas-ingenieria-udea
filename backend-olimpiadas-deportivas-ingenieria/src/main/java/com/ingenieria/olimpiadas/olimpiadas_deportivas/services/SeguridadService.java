@@ -45,6 +45,9 @@ public class SeguridadService {
         Permiso pTorneosVer = permisoRepository.findByNombreIgnoreCase("Torneos_Ver")
                 .orElseGet(() -> permisoRepository.save(new Permiso(null, "Torneos_Ver", "Ver listado de torneos.")));
 
+        Permiso pTorneosCrear = permisoRepository.findByNombreIgnoreCase("Torneos_Crear")
+                .orElseGet(() -> permisoRepository.save(new Permiso(null, "Torneos_Crear", "Crear torneos y generar llaves.")));
+
         Permiso pUsuariosEditarRol = permisoRepository.findByNombreIgnoreCase("Usuarios_Editar_Rol")
                 .orElseGet(() -> permisoRepository.save(new Permiso(null, "Usuarios_Editar_Rol", "Editar rol a cada usuario que lo requiera.")));
 
@@ -69,7 +72,7 @@ public class SeguridadService {
         Permiso pEquiposVer = permisoRepository.findByNombreIgnoreCase("Equipos_Ver")
                 .orElseGet(() -> permisoRepository.save(new Permiso(null, "Equipos_Ver", "Ver listado de equipos por torneo.")));
 
-        vincular(administrador, List.of(pPartidosVer, pPartidosEditar, pTorneosVer,
+        vincular(administrador, List.of(pPartidosVer, pPartidosEditar, pTorneosVer, pTorneosCrear,
                 pUsuariosEditarRol, pEquiposEliminar, pEquiposCrear,
                 pPartidosEliminar, pPosicionesVer, pEquiposEditar,
                 pPartidosCrear, pEquiposVer));
