@@ -56,9 +56,14 @@ public class EventoService {
         var tipo = tipoEventoRepository.findById(req.getId_tipo_evento())
                 .orElseThrow(() -> new NotFoundException("Tipo de evento no encontrado"));
 
-        // Validar jugador solo si se proporciona (eventos como WO no requieren jugador)
+        // Validar jugador según la configuración del tipo de evento
         Usuario jugador = null;
-        if (req.getId_usuario_jugador() != null) {
+        
+        // Si el tipo de evento requiere jugador, debe proporcionarse
+        if (Boolean.TRUE.equals(tipo.getRequiereJugador())) {
+            if (req.getId_usuario_jugador() == null) {
+                throw new BadRequestException("Este tipo de evento requiere especificar un jugador");
+            }
             jugador = usuarioRepository.findById(req.getId_usuario_jugador())
                     .orElseThrow(() -> new NotFoundException("Jugador no encontrado"));
 
@@ -67,6 +72,19 @@ public class EventoService {
             boolean pertenece = upeRepository.existsByUsuarioIdAndEquipoIdAndTorneoId(jugador.getId(), equipoId, torneoId);
             if (!pertenece) {
                 throw new BadRequestException("El jugador no pertenece a la plantilla del equipo para este torneo");
+            }
+        } else {
+            // Tipo de evento no requiere jugador (ej: WO, forfeit), pero puede ser opcional
+            if (req.getId_usuario_jugador() != null) {
+                jugador = usuarioRepository.findById(req.getId_usuario_jugador())
+                        .orElseThrow(() -> new NotFoundException("Jugador no encontrado"));
+                // Validar plantilla si se proporciona un jugador
+                Integer equipoId = epp.getEquipo().getId();
+                Integer torneoId = epp.getPartido().getTorneo().getId();
+                boolean pertenece = upeRepository.existsByUsuarioIdAndEquipoIdAndTorneoId(jugador.getId(), equipoId, torneoId);
+                if (!pertenece) {
+                    throw new BadRequestException("El jugador no pertenece a la plantilla del equipo para este torneo");
+                }
             }
         }
 

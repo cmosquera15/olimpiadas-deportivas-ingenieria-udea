@@ -149,10 +149,10 @@ export function EventosPanel({ partido }: EventosPanelProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Check if the selected tipo evento is WO or similar team-level event
+
+    // Check if the selected tipo evento requires a jugador
     const selectedTipo = tiposEvento?.find(t => String(t.id) === tipoEventoId);
-    const isTeamLevelEvent = selectedTipo?.nombre?.toUpperCase().includes('WO');
+    const requiereJugador = selectedTipo?.requiereJugador ?? true;
     
     // Validate tipo evento
     if (!tipoEventoId) {
@@ -164,8 +164,8 @@ export function EventosPanel({ partido }: EventosPanelProps) {
       return;
     }
 
-    // Validate jugador only if it's not a team-level event
-    if (!isTeamLevelEvent && (!usuarioId || usuarioId === 'none')) {
+    // Validate jugador only if the event type requires it
+    if (requiereJugador && (!usuarioId || usuarioId === 'none')) {
       toast({
         variant: 'destructive',
         title: 'Campos incompletos',
@@ -330,9 +330,9 @@ export function EventosPanel({ partido }: EventosPanelProps) {
               <label className="text-sm font-medium">Jugador</label>
               {(() => {
                 const selectedTipo = tiposEvento?.find(t => String(t.id) === tipoEventoId);
-                const isTeamLevelEvent = selectedTipo?.nombre?.toUpperCase().includes('WO');
+                const requiereJugador = selectedTipo?.requiereJugador ?? true;
 
-                if (isTeamLevelEvent) {
+                if (!requiereJugador) {
                   return (
                     <div className="text-sm text-muted-foreground border rounded-md p-3 bg-muted/50">
                       Este tipo de evento no requiere seleccionar un jugador (aplica a nivel de equipo)

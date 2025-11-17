@@ -6,14 +6,16 @@ public record TipoEventoDTO(
     Integer id,
     String nombre,
     Integer puntosNegativos,
-    Integer deporteId
+    Integer deporteId,
+    Boolean requiereJugador
 ) {
     public TipoEventoDTO(TipoEvento te) {
         this(
             te.getId(),
             te.getNombre(),
             te.getPuntosNegativos(),
-            te.getDeporte() != null ? te.getDeporte().getId() : null
+            te.getDeporte() != null ? te.getDeporte().getId() : null,
+            te.getRequiereJugador()
         );
     }
 }

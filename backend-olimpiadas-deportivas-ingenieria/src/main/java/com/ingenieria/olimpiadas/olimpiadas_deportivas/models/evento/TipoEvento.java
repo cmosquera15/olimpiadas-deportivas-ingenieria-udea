@@ -19,4 +19,8 @@ public class TipoEvento {
 
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="id_deporte", nullable=false)
     private Deporte deporte;
+
+    @Column(name="requiere_jugador", nullable=false)
+    @Builder.Default
+    private Boolean requiereJugador = true;
 }

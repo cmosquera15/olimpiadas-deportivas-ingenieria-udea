@@ -486,6 +486,7 @@ export default function TablaPosiciones() {
                     semifinales={semifinalesData?.content || []}
                     final={finalData?.content || []}
                     deporteNombre={selectedTorneo?.deporteNombre || ''}
+                    highlightPhase={fase as 'cuartos' | 'semifinal' | 'final'}
                   />
                 </CardContent>
               </Card>

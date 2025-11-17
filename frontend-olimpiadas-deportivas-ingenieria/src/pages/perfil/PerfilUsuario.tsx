@@ -4,7 +4,7 @@ import { usuariosService, UsuarioUpdatePayload } from '@/services/usuarios.servi
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useCatalogos } from '@/hooks/useCatalogos';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,6 +18,7 @@ export function PerfilUsuario() {
   const { toast } = useToast();
   const { programas, generos, eps, tiposVinculo } = useCatalogos();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   // Fetch full usuario from backend for richer profile details
   const { data: perfilCompleto } = useQuery({
     queryKey: ['perfil-completo', user?.id],
@@ -59,6 +60,20 @@ export function PerfilUsuario() {
         correo: updated.correo,
         fotoUrl: updated.fotoUrl,
       }, profileComplete);
+
+      // Refrescar datos detallados del perfil en caché y en el formulario
+      if (updated?.id) {
+        queryClient.invalidateQueries({ queryKey: ['perfil-completo', updated.id] });
+      }
+      setForm({
+        nombre: updated.nombre ?? '',
+        documento: updated.documento,
+        id_programa_academico: updated.programaAcademico?.id,
+        id_genero: updated.genero?.id,
+        id_eps: updated.eps?.id,
+        id_tipo_vinculo: updated.tipoVinculo?.id,
+        fotoUrl: updated.fotoUrl ?? '',
+      });
     },
     onError: (err: unknown) => {
       const axiosErr = err as { response?: { data?: { message?: string } } };

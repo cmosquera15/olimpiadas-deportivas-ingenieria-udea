@@ -71,7 +71,7 @@ public interface CatalogoMapper {
     default TipoEventoDTO toTipoEventoDTO(TipoEvento x) {
         if (x == null) return null;
         Integer deporteId = (x.getDeporte() != null) ? x.getDeporte().getId() : null;
-        return new TipoEventoDTO(x.getId(), x.getNombre(), x.getPuntosNegativos(), deporteId);
+        return new TipoEventoDTO(x.getId(), x.getNombre(), x.getPuntosNegativos(), deporteId, x.getRequiereJugador());
     }
 
     default IdNombreDTO toIdNombre(Deporte d) { return d == null ? null : new IdNombreDTO(d.getId(), d.getNombre()); }

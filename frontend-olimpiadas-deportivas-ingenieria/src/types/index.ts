@@ -94,6 +94,7 @@ export interface TipoEvento {
   nombre: string;
   deporteId: number;
   puntosNegativos: number;
+  requiereJugador: boolean;
 }
 
 // Olimpiada types

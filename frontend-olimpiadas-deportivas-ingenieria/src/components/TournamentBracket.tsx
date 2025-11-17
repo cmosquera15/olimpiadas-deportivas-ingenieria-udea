@@ -20,6 +20,7 @@ interface TournamentBracketProps {
   semifinales?: Partido[];
   final?: Partido[];
   deporteNombre?: string;
+  highlightPhase?: 'cuartos' | 'semifinal' | 'final';
 }
 
 export const TournamentBracket = ({
@@ -27,6 +28,7 @@ export const TournamentBracket = ({
   semifinales = [],
   final = [],
   deporteNombre = '',
+  highlightPhase,
 }: TournamentBracketProps) => {
   const esFutbol = deporteNombre.toLowerCase().includes('futbol') || deporteNombre.toLowerCase().includes('fútbol');
   const esBaloncesto = deporteNombre.toLowerCase().includes('baloncesto');
@@ -58,6 +60,11 @@ export const TournamentBracket = ({
   const cuartosMatches = cuartos.map(convertirABracketMatch);
   const semifinalesMatches = semifinales.map(convertirABracketMatch);
   const finalMatch = final.length > 0 ? convertirABracketMatch(final[0]) : null;
+
+  const dimClass = (section: 'cuartos' | 'semifinal' | 'final') =>
+    highlightPhase && highlightPhase !== section
+      ? 'opacity-40 saturate-50 pointer-events-none transition-opacity'
+      : 'transition-opacity';
 
   const MatchCard = ({ match, size = 'md' }: { match: BracketMatch; size?: 'sm' | 'md' | 'lg' }) => {
     const sizeClasses = {
@@ -119,7 +126,7 @@ export const TournamentBracket = ({
         <div className="min-w-[1200px] mx-auto">
           <div className="grid grid-cols-4 gap-8">
             {/* Cuartos de Final */}
-            <div className="space-y-4">
+            <div className={`space-y-4 ${dimClass('cuartos')}`}>
               <h3 className="text-center font-semibold text-lg mb-4">Cuartos de Final</h3>
               <div className="space-y-12">
                 {cuartosMatches.map((match) => (
@@ -133,7 +140,7 @@ export const TournamentBracket = ({
             </div>
 
             {/* Semifinales */}
-            <div className="space-y-4">
+            <div className={`space-y-4 ${dimClass('semifinal')}`}>
               <h3 className="text-center font-semibold text-lg mb-4">Semifinal</h3>
               <div className="space-y-24 pt-16">
                 {semifinalesMatches.slice(0, 2).map((match) => (
@@ -147,7 +154,7 @@ export const TournamentBracket = ({
             </div>
 
             {/* Final */}
-            <div className="space-y-4">
+            <div className={`space-y-4 ${dimClass('final')}`}>
               <h3 className="text-center font-semibold text-lg mb-4">Final</h3>
               <div className="pt-44">
                 {finalMatch && <MatchCard match={finalMatch} size="lg" />}
@@ -162,7 +169,7 @@ export const TournamentBracket = ({
             </div>
 
             {/* Campeón */}
-            <div className="space-y-4">
+            <div className={`space-y-4 ${dimClass('final')}`}>
               <h3 className="text-center font-semibold text-lg mb-4">Campeón</h3>
               <div className="pt-44">
                 <Card className="p-6 min-w-[200px] border-4 border-yellow-500 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900">
@@ -224,7 +231,7 @@ export const TournamentBracket = ({
         <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-3 gap-12">
             {/* Semifinales */}
-            <div className="space-y-4">
+            <div className={`space-y-4 ${dimClass('semifinal')}`}>
               <h3 className="text-center font-semibold text-lg mb-4">Semifinal</h3>
               <div className="space-y-16">
                 {semifinalesMatches.map((match) => (
@@ -238,7 +245,7 @@ export const TournamentBracket = ({
             </div>
 
             {/* Final */}
-            <div className="space-y-4">
+            <div className={`space-y-4 ${dimClass('final')}`}>
               <h3 className="text-center font-semibold text-lg mb-4">Final</h3>
               <div className="pt-24">
                 {finalMatch && <MatchCard match={finalMatch} size="lg" />}
@@ -253,7 +260,7 @@ export const TournamentBracket = ({
             </div>
 
             {/* Campeón */}
-            <div className="space-y-4">
+            <div className={`space-y-4 ${dimClass('final')}`}>
               <h3 className="text-center font-semibold text-lg mb-4">Campeón</h3>
               <div className="pt-24">
                 <Card className="p-6 min-w-[200px] border-4 border-yellow-500 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900">
