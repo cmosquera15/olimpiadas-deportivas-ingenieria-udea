@@ -12,6 +12,7 @@ import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.torneo.TorneoDetailDT
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.torneo.TorneoListDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.GeneradorLlavesService;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.TorneoService;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.realtime.RealtimeService;
 
 import jakarta.validation.Valid;
 
@@ -26,10 +27,12 @@ public class TorneoController {
 
     private final TorneoService svc;
     private final GeneradorLlavesService generadorLlavesService;
+    private final RealtimeService realtime;
 
-    public TorneoController(TorneoService svc, GeneradorLlavesService generadorLlavesService) {
+    public TorneoController(TorneoService svc, GeneradorLlavesService generadorLlavesService, RealtimeService realtime) {
         this.svc = svc;
         this.generadorLlavesService = generadorLlavesService;
+        this.realtime = realtime;
     }
 
     @GetMapping
@@ -57,6 +60,7 @@ public class TorneoController {
     public ResponseEntity<TorneoDetailDTO> crear(@Valid @RequestBody TorneoCreateRequest req, UriComponentsBuilder uriBuilder) {
         TorneoDetailDTO dto = svc.crear(req);
         var location = uriBuilder.path("/api/torneos/{id}").buildAndExpand(dto.id()).toUri();
+        realtime.emitTorneosUpdated(dto.id());
         return ResponseEntity.status(HttpStatus.CREATED).location(location).body(dto);
     }
 
@@ -64,6 +68,7 @@ public class TorneoController {
     @PreAuthorize("hasAuthority('Partidos_Crear')")
     public ResponseEntity<Void> generarLlaves(@PathVariable Integer id) {
         generadorLlavesService.generarLlaves(id);
+        realtime.emitBracketUpdated(id);
         return ResponseEntity.noContent().build();
     }
 }

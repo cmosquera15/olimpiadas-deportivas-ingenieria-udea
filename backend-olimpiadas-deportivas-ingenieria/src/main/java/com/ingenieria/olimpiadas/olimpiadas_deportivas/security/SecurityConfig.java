@@ -88,7 +88,8 @@ public class SecurityConfig {
                     "/api/partidos", "/api/partidos/**",
                     "/api/equipos", "/api/equipos/**",
                     "/api/posiciones", "/api/posiciones/**",
-                    "/api/olimpiadas", "/api/olimpiadas/**"
+                    "/api/olimpiadas", "/api/olimpiadas/**",
+                    "/api/rt/stream"
                 ).permitAll()
 
                 // Admin endpoints

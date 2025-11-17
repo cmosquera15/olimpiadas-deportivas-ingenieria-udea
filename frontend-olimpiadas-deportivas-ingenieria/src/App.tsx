@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import Login from "./pages/auth/Login";
@@ -19,18 +19,41 @@ import { DetalleEquipo } from "./pages/equipos/DetalleEquipo";
 import TablaPosiciones from "./pages/posiciones/TablaPosiciones";
 import Usuarios from "./pages/admin/Usuarios";
 import PerfilUsuario from "./pages/perfil/PerfilUsuario";
+import { useEffect } from "react";
+import { startRealtime } from "@/lib/realtime";
+
+const POLL_INTERVAL = Number(import.meta.env.VITE_POLL_INTERVAL_MS ?? 15000);
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      refetchOnWindowFocus: false,
+      // Refresca automáticamente en las situaciones más comunes
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+      refetchOnMount: true,
+      // No mantener datos como frescos para forzar refetch según políticas
+      staleTime: 0,
+      gcTime: 5 * 60 * 1000,
+      // Polling global para reflejar cambios hechos por otros usuarios
+      refetchInterval: POLL_INTERVAL,
+      refetchIntervalInBackground: true,
     },
   },
 });
 
+const RealtimeBridge = () => {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const stop = startRealtime(qc);
+    return () => { stop?.(); };
+  }, [qc]);
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <RealtimeBridge />
     <TooltipProvider>
       <Toaster />
       <Sonner />

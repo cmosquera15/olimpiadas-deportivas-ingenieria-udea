@@ -27,10 +27,10 @@ export function MarcadorForm({ partido, onSuccess }: MarcadorFormProps) {
    partido.equipoVisitantePuntos?.toString() ?? ''
   );
   const [resultadoEquipo1Id, setResultadoEquipo1Id] = useState<string>(
-   ''
+    partido.resultadoEquipo1Id ? String(partido.resultadoEquipo1Id) : ''
   );
   const [resultadoEquipo2Id, setResultadoEquipo2Id] = useState<string>(
-   ''
+    partido.resultadoEquipo2Id ? String(partido.resultadoEquipo2Id) : ''
   );
 
   const { toast } = useToast();
@@ -41,6 +41,14 @@ export function MarcadorForm({ partido, onSuccess }: MarcadorFormProps) {
   });
 
   const isBasketball = partido.torneoNombre.toLowerCase().includes('baloncesto');
+
+  // Mantener sincronizado el formulario cuando el partido cambia (después de guardar o refetch)
+  useEffect(() => {
+    setPuntosEquipo1(partido.equipoLocalPuntos?.toString() ?? '');
+    setPuntosEquipo2(partido.equipoVisitantePuntos?.toString() ?? '');
+    setResultadoEquipo1Id(partido.resultadoEquipo1Id ? String(partido.resultadoEquipo1Id) : '');
+    setResultadoEquipo2Id(partido.resultadoEquipo2Id ? String(partido.resultadoEquipo2Id) : '');
+  }, [partido]);
 
   // Validación: en baloncesto no puede haber empate a menos que haya W.O.
   const hasWO =

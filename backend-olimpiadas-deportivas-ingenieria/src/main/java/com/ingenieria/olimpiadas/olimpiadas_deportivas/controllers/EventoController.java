@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.evento.EventoCreateDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.evento.EventoDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.EventoService;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.realtime.RealtimeService;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.repositories.torneo.EquiposPorPartidoRepository;
 
 import jakarta.validation.Valid;
 
@@ -23,7 +25,13 @@ import jakarta.validation.Valid;
 public class EventoController {
 
     private final EventoService svc;
-    public EventoController(EventoService svc) { this.svc = svc; }
+    private final RealtimeService realtime;
+    private final EquiposPorPartidoRepository eppRepository;
+    public EventoController(EventoService svc, RealtimeService realtime, EquiposPorPartidoRepository eppRepository) {
+        this.svc = svc;
+        this.realtime = realtime;
+        this.eppRepository = eppRepository;
+    }
 
     @GetMapping
     public ResponseEntity<List<EventoDTO>> listarPorPartido(@RequestParam Integer partidoId) {
@@ -32,12 +40,23 @@ public class EventoController {
 
     @PostMapping
     public ResponseEntity<EventoDTO> crear(@Valid @RequestBody EventoCreateDTO req) {
-        return ResponseEntity.ok(svc.crear(req));
+        EventoDTO created = svc.crear(req);
+        if (created != null && req.getId_equipo_por_partido() != null) {
+            Integer partidoId = eppRepository.findById(req.getId_equipo_por_partido())
+                    .map(epp -> epp.getPartido().getId())
+                    .orElse(null);
+            if (partidoId != null) {
+                realtime.emitEventosUpdated(partidoId);
+            }
+        }
+        return ResponseEntity.ok(created);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         svc.eliminar(id);
+        // Notificamos que la lista de eventos cambió (no tenemos partidoId aquí)
+        realtime.emit("eventos-updated", java.util.Map.of("id", id));
         return ResponseEntity.noContent().build();
     }
 }

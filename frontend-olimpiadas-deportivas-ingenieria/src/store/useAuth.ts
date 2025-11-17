@@ -23,6 +23,12 @@ export const useAuth = create<AuthState>((set, get) => ({
 
   setAuth: (token, user, profileComplete) => {
     if (token) saveToken(token);
+    try {
+      if (user) localStorage.setItem('auth_user', JSON.stringify(user));
+      if (typeof profileComplete === 'boolean') {
+        localStorage.setItem('auth_profile_complete', JSON.stringify(profileComplete));
+      }
+    } catch {}
     set({
       user: user ?? null,
       token: token ?? null,
@@ -34,6 +40,10 @@ export const useAuth = create<AuthState>((set, get) => ({
 
   clearAuth: () => {
     clearToken();
+    try {
+      localStorage.removeItem('auth_user');
+      localStorage.removeItem('auth_profile_complete');
+    } catch {}
     set({ user: null, token: null, isAuthenticated: false, profileComplete: false, authReady: true });
   },
 
@@ -52,10 +62,38 @@ export const useAuth = create<AuthState>((set, get) => ({
       return;
     }
 
-    set({ token, isAuthenticated: true, authReady: false });
+    // Carga rápida desde caché para reducir la latencia percibida
+    let cachedUser: Partial<Usuario> | null = null;
+    let cachedComplete: boolean | undefined = undefined;
+    try {
+      const u = localStorage.getItem('auth_user');
+      const pc = localStorage.getItem('auth_profile_complete');
+      cachedUser = u ? (JSON.parse(u) as Partial<Usuario>) : null;
+      cachedComplete = pc ? (JSON.parse(pc) as boolean) : undefined;
+    } catch {}
 
-    authService.getMe()
+    set({
+      token,
+      isAuthenticated: true,
+      user: cachedUser,
+      profileComplete: cachedComplete ?? false,
+      authReady: true,
+    });
+
+    // Actualiza en background para garantizar frescura
+    authService
+      .getMe()
       .then((me: AuthDTO) => {
+        try {
+          localStorage.setItem('auth_user', JSON.stringify({
+            id: me.id ?? undefined,
+            nombre: me.nombre ?? null,
+            correo: me.correo ?? null,
+            fotoUrl: me.fotoUrl ?? null,
+          }));
+          localStorage.setItem('auth_profile_complete', JSON.stringify(!!me.completo));
+        } catch {}
+
         set({
           user: {
             id: me.id ?? undefined,
@@ -64,11 +102,10 @@ export const useAuth = create<AuthState>((set, get) => ({
             fotoUrl: me.fotoUrl ?? null,
           },
           profileComplete: !!me.completo,
-          authReady: true,
         });
       })
       .catch(() => {
-        set({ authReady: true });
+        // mantener estado rápido ya establecido
       });
   },
 }));

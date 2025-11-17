@@ -17,6 +17,7 @@ import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.PartidoListVi
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.partido.PartidoUpdateDTO;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.PartidoService;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.services.GeneradorLlavesService;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.realtime.RealtimeService;
 
 import java.util.List;
 import java.util.Map;
@@ -27,10 +28,12 @@ public class PartidoController {
 
     private final PartidoService svc;
     private final GeneradorLlavesService generadorLlavesService;
+    private final RealtimeService realtime;
     
-    public PartidoController(PartidoService svc, GeneradorLlavesService generadorLlavesService) { 
+    public PartidoController(PartidoService svc, GeneradorLlavesService generadorLlavesService, RealtimeService realtime) { 
         this.svc = svc;
         this.generadorLlavesService = generadorLlavesService;
+        this.realtime = realtime;
     }
 
     @GetMapping
@@ -50,20 +53,31 @@ public class PartidoController {
 
     @PostMapping
     public ResponseEntity<PartidoDetailDTO> crear(@Valid @RequestBody PartidoCreateDTO req) {
-        return ResponseEntity.ok(svc.crear(req));
+        PartidoDetailDTO dto = svc.crear(req);
+        if (dto != null) {
+            realtime.emitPartidoUpdated(dto.id(), dto.idTorneo());
+            realtime.emitTorneosUpdated(dto.idTorneo());
+        }
+        return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('Partidos_Editar')")
     public ResponseEntity<PartidoDetailDTO> actualizar(@PathVariable Integer id,
                                                        @Valid @RequestBody PartidoUpdateDTO req) {
-        return ResponseEntity.ok(svc.actualizar(id, req));
+        PartidoDetailDTO dto = svc.actualizar(id, req);
+        if (dto != null) {
+            realtime.emitPartidoUpdated(dto.id(), dto.idTorneo());
+        }
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('Partidos_Eliminar')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         svc.eliminar(id);
+        // Emit a generic update for partido list; torneoId unknown here
+        realtime.emit("partidos-updated", Map.of("partidoId", id));
         return ResponseEntity.noContent().build();
     }
 
@@ -72,6 +86,7 @@ public class PartidoController {
     public ResponseEntity<Void> asignarEquipos(@PathVariable Integer id,
                                                @Valid @RequestBody AsignarEquiposRequest req) {
         svc.asignarEquipos(id, req.equipoId1(), req.equipoId2());
+        realtime.emit("partido-assign-updated", Map.of("partidoId", id));
         return ResponseEntity.noContent().build();
     }
 
@@ -79,14 +94,26 @@ public class PartidoController {
     @PreAuthorize("hasAuthority('Partidos_Editar')")
     public ResponseEntity<PartidoDetailDTO> actualizarMarcador(@PathVariable Integer id,
                                                                @Valid @RequestBody MarcadorUpdateDTO req) {
-        return ResponseEntity.ok(svc.actualizarMarcador(id, req));
+        PartidoDetailDTO dto = svc.actualizarMarcador(id, req);
+        if (dto != null) {
+            realtime.emitPartidoUpdated(dto.id(), dto.idTorneo());
+            realtime.emitPosicionesUpdated(dto.idTorneo());
+        }
+        return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/{id}/estado")
     @PreAuthorize("hasAuthority('Partidos_Editar')")
     public ResponseEntity<PartidoDetailDTO> actualizarEstado(@PathVariable Integer id,
                                                               @Valid @RequestBody PartidoEstadoUpdateDTO req) {
-        return ResponseEntity.ok(svc.actualizarEstado(id, req.estado()));
+        PartidoDetailDTO dto = svc.actualizarEstado(id, req.estado());
+        if (dto != null) {
+            realtime.emitPartidoUpdated(dto.id(), dto.idTorneo());
+            if ("TERMINADO".equalsIgnoreCase(req.estado())) {
+                realtime.emitPosicionesUpdated(dto.idTorneo());
+            }
+        }
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/torneo/{torneoId}/puede-generar-llaves")
@@ -103,6 +130,7 @@ public class PartidoController {
     @PreAuthorize("hasAuthority('Partidos_Editar')")
     public ResponseEntity<Map<String, String>> generarLlaves(@PathVariable Integer torneoId) {
         generadorLlavesService.generarLlaves(torneoId);
+        realtime.emitBracketUpdated(torneoId);
         return ResponseEntity.ok(Map.of("mensaje", "Llaves generadas exitosamente"));
     }
 }
