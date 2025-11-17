@@ -144,9 +144,10 @@ public class UsuarioService {
                 throw new BadRequestException("No se puede cambiar el documento una vez establecido");
             }
             if (u.getDocumento() == null) {
-                // Nuevo documento
-                if (usuarioRepository.existsByDocumento(req.getDocumento())) {
-                    throw new BadRequestException("Documento ya registrado");
+                // Nuevo documento: validar que no exista en otros usuarios
+                Usuario existente = usuarioRepository.findByDocumento(req.getDocumento()).orElse(null);
+                if (existente != null && !existente.getId().equals(u.getId())) {
+                    throw new BadRequestException("Documento ya registrado por otro usuario");
                 }
                 u.setDocumento(req.getDocumento());
             }
@@ -190,8 +191,10 @@ public class UsuarioService {
                 throw new BadRequestException("No se puede cambiar el documento una vez establecido");
             }
             if (u.getDocumento() == null) {
-                if (usuarioRepository.existsByDocumento(req.getDocumento())) {
-                    throw new BadRequestException("Documento ya registrado");
+                // Nuevo documento: validar que no exista en otros usuarios
+                Usuario existente = usuarioRepository.findByDocumento(req.getDocumento()).orElse(null);
+                if (existente != null && !existente.getId().equals(u.getId())) {
+                    throw new BadRequestException("Documento ya registrado por otro usuario");
                 }
                 u.setDocumento(req.getDocumento());
             }
@@ -291,8 +294,10 @@ public class UsuarioService {
         // fotoUrl queda null hasta primer login Google
 
         if (req.getDocumento() != null && !req.getDocumento().isBlank()) {
-            if (usuarioRepository.existsByDocumento(req.getDocumento())) {
-                throw new BadRequestException("Documento ya registrado");
+            if (usuarioRepository.findByDocumento(req.getDocumento())
+                    .filter(existente -> !existente.getId().equals(u.getId()))
+                    .isPresent()) {
+                throw new BadRequestException("Documento ya registrado por otro usuario");
             }
             u.setDocumento(req.getDocumento());
         }

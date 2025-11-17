@@ -149,10 +149,12 @@ public class PartidoService {
         Integer pts1 = req.puntosEquipo1();
         Integer pts2 = req.puntosEquipo2();
 
-        boolean algunoEsWO = (res1 != null && esWO(res1)) || (res2 != null && esWO(res2));
-        if (esBasket && pts1 != null && pts2 != null && Objects.equals(pts1, pts2) && !algunoEsWO) {
-            throw new BadRequestException("En baloncesto no se permiten empates. Asigne WO a un equipo si corresponde.");
+        if (esBasket && pts1 != null && pts2 != null && Objects.equals(pts1, pts2)) {
+            throw new BadRequestException("En baloncesto no se permiten empates.");
         }
+
+        // Validar coherencia entre marcador y resultados
+        validarCoherenciaMarcadorResultados(pts1, pts2, res1, res2);
 
         epp1.setPuntos(pts1);
         epp2.setPuntos(pts2);
@@ -165,10 +167,59 @@ public class PartidoService {
         return mapper.toDetailDTO(p, eppsActualizados);
     }
 
-    private boolean esWO(Resultado r) {
-        if (r == null || r.getNombre() == null) return false;
-        String n = r.getNombre().toUpperCase(Locale.ROOT).replace(".", "");
-        return n.equals("WO") || n.equals("W O"); // tolerante a "W.O."
+    private void validarCoherenciaMarcadorResultados(Integer pts1, Integer pts2, Resultado res1, Resultado res2) {
+        // Si no hay marcador completo, no podemos validar
+        if (pts1 == null || pts2 == null || res1 == null || res2 == null) return;
+
+        String nombre1 = res1.getNombre().toUpperCase(Locale.ROOT);
+        String nombre2 = res2.getNombre().toUpperCase(Locale.ROOT);
+
+        boolean esGanador1 = nombre1.contains("GANADOR");
+        boolean esPerdedor1 = nombre1.contains("PERDEDOR");
+        boolean esEmpate1 = nombre1.contains("EMPAT");
+
+        boolean esGanador2 = nombre2.contains("GANADOR");
+        boolean esPerdedor2 = nombre2.contains("PERDEDOR");
+        boolean esEmpate2 = nombre2.contains("EMPAT");
+
+        // Caso: empate
+        if (pts1.equals(pts2)) {
+            if (!esEmpate1 || !esEmpate2) {
+                throw new BadRequestException(
+                    String.format("Marcador empatado (%d-%d) pero los resultados no son ambos EMPATE", pts1, pts2)
+                );
+            }
+            return;
+        }
+
+        // Caso: equipo 1 ganó
+        if (pts1 > pts2) {
+            if (!esGanador1) {
+                throw new BadRequestException(
+                    String.format("Equipo 1 anotó más (%d > %d) pero su resultado no es GANADOR", pts1, pts2)
+                );
+            }
+            if (!esPerdedor2) {
+                throw new BadRequestException(
+                    String.format("Equipo 2 anotó menos (%d < %d) pero su resultado no es PERDEDOR", pts2, pts1)
+                );
+            }
+            return;
+        }
+
+        // Caso: equipo 2 ganó
+        if (pts2 > pts1) {
+            if (!esGanador2) {
+                throw new BadRequestException(
+                    String.format("Equipo 2 anotó más (%d > %d) pero su resultado no es GANADOR", pts2, pts1)
+                );
+            }
+            if (!esPerdedor1) {
+                throw new BadRequestException(
+                    String.format("Equipo 1 anotó menos (%d < %d) pero su resultado no es PERDEDOR", pts1, pts2)
+                );
+            }
+        }
     }
 
     private void validarSolape(Partido p) {

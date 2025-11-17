@@ -52,22 +52,29 @@ public class EventoService {
     public EventoDTO crear(EventoCreateDTO req) {
         EquiposPorPartido epp = eppRepository.findById(req.getId_equipo_por_partido())
                 .orElseThrow(() -> new NotFoundException("EquipoPorPartido no encontrado"));
-        Usuario jugador = usuarioRepository.findById(req.getId_usuario_jugador())
-                .orElseThrow(() -> new NotFoundException("Jugador no encontrado"));
+        
         var tipo = tipoEventoRepository.findById(req.getId_tipo_evento())
                 .orElseThrow(() -> new NotFoundException("Tipo de evento no encontrado"));
 
-        Integer equipoId = epp.getEquipo().getId();
-        Integer torneoId = epp.getPartido().getTorneo().getId();
-        boolean pertenece = upeRepository.existsByUsuarioIdAndEquipoIdAndTorneoId(jugador.getId(), equipoId, torneoId);
-        if (!pertenece) {
-            throw new BadRequestException("El jugador no pertenece a la plantilla del equipo para este torneo");
+        // Validar jugador solo si se proporciona (eventos como WO no requieren jugador)
+        Usuario jugador = null;
+        if (req.getId_usuario_jugador() != null) {
+            jugador = usuarioRepository.findById(req.getId_usuario_jugador())
+                    .orElseThrow(() -> new NotFoundException("Jugador no encontrado"));
+
+            Integer equipoId = epp.getEquipo().getId();
+            Integer torneoId = epp.getPartido().getTorneo().getId();
+            boolean pertenece = upeRepository.existsByUsuarioIdAndEquipoIdAndTorneoId(jugador.getId(), equipoId, torneoId);
+            if (!pertenece) {
+                throw new BadRequestException("El jugador no pertenece a la plantilla del equipo para este torneo");
+            }
         }
 
         Evento ev = new Evento();
         ev.setEquipoPorPartido(epp);
-        ev.setUsuarioJugador(jugador);
+        ev.setUsuarioJugador(jugador); // puede ser null para eventos tipo WO
         ev.setTipoEvento(tipo);
+        ev.setObservaciones(req.getObservaciones());
 
         ev = eventoRepository.save(ev);
         return mapper.toDTO(ev);

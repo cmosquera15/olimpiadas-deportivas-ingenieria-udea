@@ -15,6 +15,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     boolean existsByDocumento(String documento);
     
+    Optional<Usuario> findByDocumento(String documento);
+    
     Page<Usuario> findByNombreContainingIgnoreCaseOrCorreoContainingIgnoreCase(
         String nombre, String correo, Pageable pageable);
 

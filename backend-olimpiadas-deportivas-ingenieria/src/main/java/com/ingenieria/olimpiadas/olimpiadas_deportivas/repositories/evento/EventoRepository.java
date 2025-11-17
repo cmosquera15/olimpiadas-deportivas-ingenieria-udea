@@ -11,6 +11,9 @@ public interface EventoRepository extends JpaRepository<Evento, Integer> {
 
     @Query("""
            select ev from Evento ev 
+           left join fetch ev.usuarioJugador
+           join fetch ev.tipoEvento
+           join fetch ev.equipoPorPartido
            where ev.equipoPorPartido.partido.id = :partidoId
            """)
     List<Evento> findByPartido(Integer partidoId);
@@ -44,6 +47,7 @@ public interface EventoRepository extends JpaRepository<Evento, Integer> {
             join ev.equipoPorPartido epp
             join epp.partido p
           where p.torneo.id = :torneoId
+            and ev.usuarioJugador is not null
             and ev.usuarioJugador.id = :usuarioId
             and upper(te.nombre) like '%GOL%'
        """)

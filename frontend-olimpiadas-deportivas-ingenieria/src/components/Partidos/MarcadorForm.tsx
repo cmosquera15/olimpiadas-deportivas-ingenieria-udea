@@ -50,20 +50,74 @@ export function MarcadorForm({ partido, onSuccess }: MarcadorFormProps) {
     setResultadoEquipo2Id(partido.resultadoEquipo2Id ? String(partido.resultadoEquipo2Id) : '');
   }, [partido]);
 
-  // Validación: en baloncesto no puede haber empate a menos que haya W.O.
-  const hasWO =
-    resultados?.some(
-      (r) =>
-        r.codigo === 'WO' &&
-        (r.id.toString() === resultadoEquipo1Id || r.id.toString() === resultadoEquipo2Id)
-    ) ?? false;
-
+  // Validación: en baloncesto no puede haber empate
   const isDraw =
     puntosEquipo1 !== '' &&
     puntosEquipo2 !== '' &&
     Number(puntosEquipo1) === Number(puntosEquipo2);
 
-  const isInvalid = isBasketball && isDraw && !hasWO;
+  const isInvalid = isBasketball && isDraw;
+
+  // Validación de coherencia: marcador vs resultados
+  const getValidationError = (): string | null => {
+    const pts1 = puntosEquipo1 ? Number(puntosEquipo1) : null;
+    const pts2 = puntosEquipo2 ? Number(puntosEquipo2) : null;
+    
+    // Si no hay marcador completo o resultados, no validamos
+    if (pts1 === null || pts2 === null || !resultadoEquipo1Id || !resultadoEquipo2Id) {
+      return null;
+    }
+
+    const res1 = resultados?.find(r => r.id.toString() === resultadoEquipo1Id);
+    const res2 = resultados?.find(r => r.id.toString() === resultadoEquipo2Id);
+    
+    if (!res1 || !res2) return null;
+
+    const nombre1 = res1.nombre.toUpperCase();
+    const nombre2 = res2.nombre.toUpperCase();
+    
+    const esGanador1 = nombre1.includes('GANADOR');
+    const esPerdedor1 = nombre1.includes('PERDEDOR');
+    const esEmpate1 = nombre1.includes('EMPAT');
+    
+    const esGanador2 = nombre2.includes('GANADOR');
+    const esPerdedor2 = nombre2.includes('PERDEDOR');
+    const esEmpate2 = nombre2.includes('EMPAT');
+
+    // Caso: empate
+    if (pts1 === pts2) {
+      if (!esEmpate1 || !esEmpate2) {
+        return `Marcador empatado (${pts1}-${pts2}) pero los resultados no son ambos EMPATE`;
+      }
+      return null;
+    }
+
+    // Caso: equipo 1 ganó
+    if (pts1 > pts2) {
+      if (!esGanador1) {
+        return `${partido.equipoLocalNombre} anotó más (${pts1} > ${pts2}) pero su resultado no es GANADOR`;
+      }
+      if (!esPerdedor2) {
+        return `${partido.equipoVisitanteNombre} anotó menos (${pts2} < ${pts1}) pero su resultado no es PERDEDOR`;
+      }
+      return null;
+    }
+
+    // Caso: equipo 2 ganó
+    if (pts2 > pts1) {
+      if (!esGanador2) {
+        return `${partido.equipoVisitanteNombre} anotó más (${pts2} > ${pts1}) pero su resultado no es GANADOR`;
+      }
+      if (!esPerdedor1) {
+        return `${partido.equipoLocalNombre} anotó menos (${pts1} < ${pts2}) pero su resultado no es PERDEDOR`;
+      }
+    }
+
+    return null;
+  };
+
+  const validationError = getValidationError();
+  const hasError = isInvalid || validationError !== null;
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -104,7 +158,7 @@ export function MarcadorForm({ partido, onSuccess }: MarcadorFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isInvalid) {
+    if (hasError) {
       return;
     }
     mutation.mutate();
@@ -135,12 +189,11 @@ export function MarcadorForm({ partido, onSuccess }: MarcadorFormProps) {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Resultado</label>
-            <Select value={resultadoEquipo1Id || 'none'} onValueChange={(val) => setResultadoEquipo1Id(val === 'none' ? '' : val)}>
+            <Select value={resultadoEquipo1Id || undefined} onValueChange={(val) => setResultadoEquipo1Id(val)}>
               <SelectTrigger>
                 <SelectValue placeholder="Sin resultado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Sin resultado</SelectItem>
                 {resultados?.map((resultado) => (
                   <SelectItem key={resultado.id} value={resultado.id.toString()}>
                     {resultado.nombre}
@@ -165,12 +218,11 @@ export function MarcadorForm({ partido, onSuccess }: MarcadorFormProps) {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Resultado</label>
-            <Select value={resultadoEquipo2Id || 'none'} onValueChange={(val) => setResultadoEquipo2Id(val === 'none' ? '' : val)}>
+            <Select value={resultadoEquipo2Id || undefined} onValueChange={(val) => setResultadoEquipo2Id(val)}>
               <SelectTrigger>
                 <SelectValue placeholder="Sin resultado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Sin resultado</SelectItem>
                 {resultados?.map((resultado) => (
                   <SelectItem key={resultado.id} value={resultado.id.toString()}>
                     {resultado.nombre}
@@ -183,20 +235,19 @@ export function MarcadorForm({ partido, onSuccess }: MarcadorFormProps) {
       </div>
 
       <TooltipProvider>
-        <Tooltip open={isInvalid ? undefined : false}>
+        <Tooltip open={hasError ? undefined : false}>
           <TooltipTrigger asChild>
             <div className="inline-block">
-              <Button type="submit" disabled={mutation.isPending || isInvalid}>
+              <Button type="submit" disabled={mutation.isPending || hasError}>
                 {mutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                 Actualizar Marcador
               </Button>
             </div>
           </TooltipTrigger>
-          {isInvalid && (
+          {hasError && (
             <TooltipContent>
               <p>
-                En baloncesto no puede haber empate a menos que uno de los equipos tenga resultado
-                W.O.
+                {validationError || 'En baloncesto no puede haber empate'}
               </p>
             </TooltipContent>
           )}

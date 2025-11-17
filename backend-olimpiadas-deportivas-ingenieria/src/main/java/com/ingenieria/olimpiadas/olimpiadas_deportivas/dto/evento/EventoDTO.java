@@ -7,5 +7,6 @@ public record EventoDTO(
         String nombreJugador,
         Integer id_tipo_evento,
         String nombreTipoEvento,
-        Integer puntosNegativos
+        Integer puntosNegativos,
+        String observaciones
 ) {}

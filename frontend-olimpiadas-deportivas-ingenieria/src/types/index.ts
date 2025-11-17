@@ -306,7 +306,8 @@ export interface Evento {
 export interface EventoCreateRequest {
   id_equipo_por_partido: number;
   id_tipo_evento: number;
-  id_usuario_jugador: number;
+  id_usuario_jugador?: number;
+  observaciones?: string;
 }
 
 // Posiciones types

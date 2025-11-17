@@ -15,9 +15,12 @@ public class Evento {
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="id_equipo_por_partido", nullable=false)
     private EquiposPorPartido equipoPorPartido;
 
-    @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="id_usuario_jugador", nullable=false)
+    @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="id_usuario_jugador", nullable=true)
     private Usuario usuarioJugador;
 
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="id_tipo_evento", nullable=false)
     private TipoEvento tipoEvento;
+
+    @Column(name="observaciones", columnDefinition="TEXT")
+    private String observaciones;
 }

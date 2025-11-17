@@ -32,7 +32,8 @@ public interface EventoMapper {
                 jugadorNm,
                 tipoEvId,
                 tipoEvNm,
-                ptsNeg
+                ptsNeg,
+                ev.getObservaciones()
         );
     }
 }

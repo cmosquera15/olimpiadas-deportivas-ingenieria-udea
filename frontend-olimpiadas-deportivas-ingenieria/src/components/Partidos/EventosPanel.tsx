@@ -149,11 +149,27 @@ export function EventosPanel({ partido }: EventosPanelProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tipoEventoId || !usuarioId || usuarioId === 'none') {
+    
+    // Check if the selected tipo evento is WO or similar team-level event
+    const selectedTipo = tiposEvento?.find(t => String(t.id) === tipoEventoId);
+    const isTeamLevelEvent = selectedTipo?.nombre?.toUpperCase().includes('WO');
+    
+    // Validate tipo evento
+    if (!tipoEventoId) {
       toast({
         variant: 'destructive',
         title: 'Campos incompletos',
-        description: 'Debes seleccionar el tipo de evento y el jugador',
+        description: 'Debes seleccionar el tipo de evento',
+      });
+      return;
+    }
+
+    // Validate jugador only if it's not a team-level event
+    if (!isTeamLevelEvent && (!usuarioId || usuarioId === 'none')) {
+      toast({
+        variant: 'destructive',
+        title: 'Campos incompletos',
+        description: 'Debes seleccionar el jugador',
       });
       return;
     }
@@ -171,11 +187,15 @@ export function EventosPanel({ partido }: EventosPanelProps) {
       return;
     }
 
-    createMutation.mutate({
+    // Include jugador only if it's selected and not 'none'
+    const payload = {
       id_equipo_por_partido: equipoPorPartidoId,
       id_tipo_evento: Number(tipoEventoId),
-      id_usuario_jugador: Number(usuarioId),
-    });
+      ...(usuarioId && usuarioId !== 'none' && { id_usuario_jugador: Number(usuarioId) }),
+      ...(observaciones && { observaciones }),
+    };
+
+    createMutation.mutate(payload);
   };
 
   if (loadingEventos) {
@@ -193,8 +213,10 @@ export function EventosPanel({ partido }: EventosPanelProps) {
         {eventos && eventos.length > 0 ? (
           eventos.map((evento) => {
             const tipoNombre = evento?.tipoEvento?.nombre ?? '—';
-            const jugadorNombre = evento?.usuario?.nombre ?? '—';
+            const jugadorNombre = evento?.usuario?.nombre ?? null;
             const puntosNeg = evento?.tipoEvento?.puntosNegativos ?? 0;
+            const isTeamLevelEvent = !jugadorNombre && tipoNombre.toUpperCase().includes('WO');
+            
             return (
             <div
               key={evento.id}
@@ -203,7 +225,13 @@ export function EventosPanel({ partido }: EventosPanelProps) {
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">{tipoNombre}</Badge>
-                  <span className="text-sm font-medium">{jugadorNombre}</span>
+                  {isTeamLevelEvent ? (
+                    <span className="text-sm font-medium text-muted-foreground italic">
+                      (Equipo completo)
+                    </span>
+                  ) : (
+                    <span className="text-sm font-medium">{jugadorNombre ?? '—'}</span>
+                  )}
                 </div>
                 {evento.observaciones && (
                   <p className="text-sm text-muted-foreground">{evento.observaciones}</p>
@@ -300,21 +328,36 @@ export function EventosPanel({ partido }: EventosPanelProps) {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Jugador</label>
-              <Select value={usuarioId} onValueChange={setUsuarioId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar jugador" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sin jugador</SelectItem>
-                  {plantilla
-                    ?.filter((p) => typeof p?.usuario?.id === 'number')
-                    .map((p) => (
-                      <SelectItem key={p.usuario.id} value={String(p.usuario.id)}>
-                        {p.usuario.nombre}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+              {(() => {
+                const selectedTipo = tiposEvento?.find(t => String(t.id) === tipoEventoId);
+                const isTeamLevelEvent = selectedTipo?.nombre?.toUpperCase().includes('WO');
+
+                if (isTeamLevelEvent) {
+                  return (
+                    <div className="text-sm text-muted-foreground border rounded-md p-3 bg-muted/50">
+                      Este tipo de evento no requiere seleccionar un jugador (aplica a nivel de equipo)
+                    </div>
+                  );
+                }
+
+                return (
+                  <Select value={usuarioId} onValueChange={setUsuarioId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar jugador" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin jugador</SelectItem>
+                      {plantilla
+                        ?.filter((p) => typeof p?.usuario?.id === 'number')
+                        .map((p) => (
+                          <SelectItem key={p.usuario.id} value={String(p.usuario.id)}>
+                            {p.usuario.nombre}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                );
+              })()}
             </div>
 
           </div>

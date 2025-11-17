@@ -14,9 +14,15 @@ import com.ingenieria.olimpiadas.olimpiadas_deportivas.dto.olimpiada.TorneoSumma
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.exceptions.BadRequestException;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.exceptions.NotFoundException;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.models.catalogo.Deporte;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.models.catalogo.Fase;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.models.catalogo.Grupo;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.models.catalogo.Jornada;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.models.torneo.Olimpiada;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.models.torneo.Torneo;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.repositories.catalogo.DeporteRepository;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.repositories.catalogo.FaseRepository;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.repositories.catalogo.GrupoRepository;
+import com.ingenieria.olimpiadas.olimpiadas_deportivas.repositories.catalogo.JornadaRepository;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.repositories.torneo.OlimpiadaRepository;
 import com.ingenieria.olimpiadas.olimpiadas_deportivas.repositories.torneo.TorneoRepository;
 
@@ -26,13 +32,22 @@ public class OlimpiadaService {
     private final OlimpiadaRepository olimpiadaRepository;
     private final TorneoRepository torneoRepository;
     private final DeporteRepository deporteRepository;
+    private final GrupoRepository grupoRepository;
+    private final JornadaRepository jornadaRepository;
+    private final FaseRepository faseRepository;
 
     public OlimpiadaService(OlimpiadaRepository olimpiadaRepository, 
                            TorneoRepository torneoRepository,
-                           DeporteRepository deporteRepository) {
+                           DeporteRepository deporteRepository,
+                           GrupoRepository grupoRepository,
+                           JornadaRepository jornadaRepository,
+                           FaseRepository faseRepository) {
         this.olimpiadaRepository = olimpiadaRepository;
         this.torneoRepository = torneoRepository;
         this.deporteRepository = deporteRepository;
+        this.grupoRepository = grupoRepository;
+        this.jornadaRepository = jornadaRepository;
+        this.faseRepository = faseRepository;
     }
 
     public List<IdNombreDTO> listarActivas() {
@@ -76,15 +91,20 @@ public class OlimpiadaService {
         // Get all deportes (Futbol and Baloncesto)
         List<Deporte> deportes = deporteRepository.findAll();
         
-        // Create a tournament for each deporte
+        // Create a tournament for each deporte with associated grupos, jornadas, and fases
         List<Torneo> torneos = deportes.stream()
                 .map(deporte -> {
                     Torneo torneo = Torneo.builder()
-                            .nombre(deporte.getNombre() + " " + req.nombre())
+                            .nombre(deporte.getNombre())
                             .deporte(deporte)
                             .olimpiada(olimpiadaGuardada)
                             .build();
-                    return torneoRepository.save(torneo);
+                    Torneo torneoGuardado = torneoRepository.save(torneo);
+                    
+                    // Create grupos, jornadas, and fases based on deporte
+                    crearEstructuraTorneo(torneoGuardado, deporte);
+                    
+                    return torneoGuardado;
                 })
                 .collect(Collectors.toList());
 
@@ -205,5 +225,65 @@ public class OlimpiadaService {
                 .replaceAll("[ñ]", "n")
                 .replaceAll("[^a-z0-9]+", "-")
                 .replaceAll("^-+|-+$", "");
+    }
+
+    /**
+     * Crea la estructura completa de un torneo: grupos, jornadas y fases según el deporte
+     */
+    private void crearEstructuraTorneo(Torneo torneo, Deporte deporte) {
+        String deporteNombre = deporte.getNombre().toUpperCase();
+        boolean esFutbol = deporteNombre.contains("FUTBOL") || deporteNombre.contains("FÚTBOL");
+        boolean esBaloncesto = deporteNombre.contains("BALONCESTO") || deporteNombre.contains("BASKETBALL");
+
+        // Crear Grupos
+        if (esFutbol) {
+            // Fútbol: Grupos A, B, C
+            for (String nombreGrupo : List.of("A", "B", "C")) {
+                Grupo grupo = Grupo.builder()
+                        .nombre(nombreGrupo)
+                        .torneo(torneo)
+                        .build();
+                grupoRepository.save(grupo);
+            }
+        } else if (esBaloncesto) {
+            // Baloncesto: Grupos A, B
+            for (String nombreGrupo : List.of("A", "B")) {
+                Grupo grupo = Grupo.builder()
+                        .nombre(nombreGrupo)
+                        .torneo(torneo)
+                        .build();
+                grupoRepository.save(grupo);
+            }
+        }
+
+        // Crear Jornadas (1-4 para ambos deportes)
+        for (int i = 1; i <= 4; i++) {
+            Jornada jornada = Jornada.builder()
+                    .numero(i)
+                    .torneo(torneo)
+                    .build();
+            jornadaRepository.save(jornada);
+        }
+
+        // Crear Fases
+        if (esFutbol) {
+            // Fútbol: Fase de Grupos, Cuartos de Final, Semifinal, Final
+            for (String nombreFase : List.of("Fase de Grupos", "Cuartos de Final", "Semifinal", "Final")) {
+                Fase fase = Fase.builder()
+                        .nombre(nombreFase)
+                        .torneo(torneo)
+                        .build();
+                faseRepository.save(fase);
+            }
+        } else if (esBaloncesto) {
+            // Baloncesto: Fase de Grupos, Semifinal, Final
+            for (String nombreFase : List.of("Fase de Grupos", "Semifinal", "Final")) {
+                Fase fase = Fase.builder()
+                        .nombre(nombreFase)
+                        .torneo(torneo)
+                        .build();
+                faseRepository.save(fase);
+            }
+        }
     }
 }

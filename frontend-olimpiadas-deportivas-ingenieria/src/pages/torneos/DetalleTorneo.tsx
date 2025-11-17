@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { torneosService } from '@/services/torneos.service';
+import { partidosService } from '@/services/partidos.service';
 import { useGrupos, useJornadas } from '@/hooks/useCatalogos';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,13 @@ import { toast } from 'sonner';
 import { ArrowLeft, Trophy, Calendar, Users, Zap, ExternalLink, Award } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import axios from 'axios';
+
+interface EstadoFaseGruposDTO {
+  puedeGenerar: boolean;
+  partidosTotales: number;
+  partidosJugados: number;
+  mensaje?: string;
+}
 
 export default function DetalleTorneo() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +33,14 @@ export default function DetalleTorneo() {
 
   const { data: grupos } = useGrupos(torneo?.id);
   const { data: jornadas } = useJornadas(torneo?.id);
+
+  // Estado de fase de grupos (para habilitar botón de generar llaves)
+  const { data: estadoFaseGrupos } = useQuery<EstadoFaseGruposDTO>({
+    queryKey: ['puede-generar-llaves', id],
+    queryFn: () => partidosService.puedeGenerarLlaves(Number(id)),
+    enabled: !!id,
+    refetchInterval: 30000, // refetch cada 30s
+  });
 
   const generarLlavesMutation = useMutation({
     mutationFn: () => torneosService.generarLlaves(Number(id)),
@@ -171,15 +187,22 @@ export default function DetalleTorneo() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button
-                onClick={() => generarLlavesMutation.mutate()}
-                disabled={generarLlavesMutation.isPending}
-              >
-                {generarLlavesMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <div className="space-y-2">
+                {estadoFaseGrupos && (
+                  <p className="text-sm text-muted-foreground">
+                    {estadoFaseGrupos.partidosJugados}/{estadoFaseGrupos.partidosTotales} partidos de fase de grupos finalizados
+                  </p>
                 )}
-                Generar Llaves del Torneo
-              </Button>
+                <Button
+                  onClick={() => generarLlavesMutation.mutate()}
+                  disabled={generarLlavesMutation.isPending || !estadoFaseGrupos?.puedeGenerar}
+                >
+                  {generarLlavesMutation.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {estadoFaseGrupos?.puedeGenerar ? 'Generar Llaves del Torneo' : 'Fase de grupos en curso'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </Guard>
