@@ -5,7 +5,8 @@ import com.ingenieria.olimpiadas.olimpiadas_deportivas.models.torneo.Torneo;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity @Table(schema="olimpiadas_ingenieria", name="tbl_fase")
+@Entity @Table(schema="olimpiadas_ingenieria", name="tbl_fase",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"nombre","id_torneo"}))
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Fase {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

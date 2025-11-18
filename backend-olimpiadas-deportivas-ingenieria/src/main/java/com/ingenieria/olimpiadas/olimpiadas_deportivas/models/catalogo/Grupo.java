@@ -5,7 +5,8 @@ import com.ingenieria.olimpiadas.olimpiadas_deportivas.models.torneo.Torneo;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity @Table(schema="olimpiadas_ingenieria", name="tbl_grupo")
+@Entity @Table(schema="olimpiadas_ingenieria", name="tbl_grupo",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"nombre","id_torneo"}))
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Grupo {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -239,50 +239,70 @@ public class OlimpiadaService {
         if (esFutbol) {
             // Fútbol: Grupos A, B, C
             for (String nombreGrupo : List.of("A", "B", "C")) {
-                Grupo grupo = Grupo.builder()
-                        .nombre(nombreGrupo)
-                        .torneo(torneo)
-                        .build();
-                grupoRepository.save(grupo);
+                try {
+                    Grupo grupo = Grupo.builder()
+                            .nombre(nombreGrupo)
+                            .torneo(torneo)
+                            .build();
+                    grupoRepository.save(grupo);
+                } catch (Exception e) {
+                    throw new BadRequestException("Error al crear grupo " + nombreGrupo + " para torneo " + torneo.getNombre() + ": " + e.getMessage());
+                }
             }
         } else if (esBaloncesto) {
             // Baloncesto: Grupos A, B
             for (String nombreGrupo : List.of("A", "B")) {
-                Grupo grupo = Grupo.builder()
-                        .nombre(nombreGrupo)
-                        .torneo(torneo)
-                        .build();
-                grupoRepository.save(grupo);
+                try {
+                    Grupo grupo = Grupo.builder()
+                            .nombre(nombreGrupo)
+                            .torneo(torneo)
+                            .build();
+                    grupoRepository.save(grupo);
+                } catch (Exception e) {
+                    throw new BadRequestException("Error al crear grupo " + nombreGrupo + " para torneo " + torneo.getNombre() + ": " + e.getMessage());
+                }
             }
         }
 
         // Crear Jornadas (1-4 para ambos deportes)
         for (int i = 1; i <= 4; i++) {
-            Jornada jornada = Jornada.builder()
-                    .numero(i)
-                    .torneo(torneo)
-                    .build();
-            jornadaRepository.save(jornada);
+            try {
+                Jornada jornada = Jornada.builder()
+                        .numero(i)
+                        .torneo(torneo)
+                        .build();
+                jornadaRepository.save(jornada);
+            } catch (Exception e) {
+                throw new BadRequestException("Error al crear jornada " + i + " para torneo " + torneo.getNombre() + ": " + e.getMessage());
+            }
         }
 
         // Crear Fases
         if (esFutbol) {
             // Fútbol: Fase de Grupos, Cuartos de Final, Semifinal, Final
-            for (String nombreFase : List.of("Fase de Grupos", "Cuartos de Final", "Semifinal", "Final")) {
-                Fase fase = Fase.builder()
-                        .nombre(nombreFase)
-                        .torneo(torneo)
-                        .build();
-                faseRepository.save(fase);
+            for (String nombreFase : List.of("Fase de Grupos", "Cuartos de Final", "Semifinales", "Final")) {
+                try {
+                    Fase fase = Fase.builder()
+                            .nombre(nombreFase + " - Futbol")
+                            .torneo(torneo)
+                            .build();
+                    faseRepository.save(fase);
+                } catch (Exception e) {
+                    throw new BadRequestException("Error al crear fase '" + nombreFase + "' para torneo " + torneo.getNombre() + ": " + e.getMessage());
+                }
             }
         } else if (esBaloncesto) {
             // Baloncesto: Fase de Grupos, Semifinal, Final
-            for (String nombreFase : List.of("Fase de Grupos", "Semifinal", "Final")) {
-                Fase fase = Fase.builder()
-                        .nombre(nombreFase)
-                        .torneo(torneo)
-                        .build();
-                faseRepository.save(fase);
+            for (String nombreFase : List.of("Fase de Grupos", "Semifinales", "Final")) {
+                try {
+                    Fase fase = Fase.builder()
+                            .nombre(nombreFase + " - Baloncesto")
+                            .torneo(torneo)
+                            .build();
+                    faseRepository.save(fase);
+                } catch (Exception e) {
+                    throw new BadRequestException("Error al crear fase '" + nombreFase + "' para torneo " + torneo.getNombre() + ": " + e.getMessage());
+                }
             }
         }
     }

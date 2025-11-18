@@ -146,6 +146,11 @@ export default function TablaPosiciones() {
     return nombre.includes('futbol') || nombre.includes('fútbol');
   }, [selectedTorneo]);
 
+  const isBasketball = React.useMemo(() => {
+    const nombre = selectedTorneo?.deporteNombre?.toLowerCase() ?? '';
+    return nombre.includes('baloncesto');
+  }, [selectedTorneo]);
+
   // Goleadores query (only for fútbol)
   const { data: goleadores, isLoading: isLoadingGoleadores } = useQuery<Goleador[]>({
     queryKey: ['goleadores', torneoId],
@@ -326,7 +331,25 @@ export default function TablaPosiciones() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Posiciones {tabla?.grupoNombre ? `- ${tabla.grupoNombre}` : ''}</CardTitle>
-                  <CardDescription>PJ=Partidos Jugados, PG=Ganados, PE=Empatados, PP=Perdidos, GF=Goles a Favor, GC=Goles en Contra, GD=Diferencia de Goles, PTS=Puntos</CardDescription>
+                  <CardDescription className="space-y-2">
+                    {isBasketball ? (
+                      <>
+                        <div>PJ=Partidos Jugados, PG=Ganados, PE=Empatados, PP=Perdidos, CF=Cestas a Favor, CC=Cestas en Contra, DC=Diferencia de Cestas, PTS=Puntos</div>
+                        <div className="text-xs">
+                          <strong>Criterios de desempate:</strong> 1. Menor Fair Play, 2. Mayor PG, 3. Mayor CF, 4. Mayor DC, 5. Cestas del primer partido
+                        </div>
+                        <div className="text-xs">Victoria=2pts, Derrota=1pt, Derrota por WO=0pts</div>
+                      </>
+                    ) : (
+                      <>
+                        <div>PJ=Partidos Jugados, PG=Ganados, PE=Empatados, PP=Perdidos, GF=Goles a Favor, GC=Goles en Contra, GD=Diferencia de Goles, PTS=Puntos</div>
+                        <div className="text-xs">
+                          <strong>Criterios de desempate:</strong> 1. Menor Fair Play, 2. Mayor PG, 3. Mayor GD, 4. Mayor GF, 5. Menor PP, 6. Menor GC
+                        </div>
+                        <div className="text-xs">Victoria=3pts, Empate=1pt</div>
+                      </>
+                    )}
+                  </CardDescription>
                 </div>
                 {canGenerateBrackets && estadoFaseGrupos && (
                   <div className="flex flex-col items-end gap-2">
@@ -356,9 +379,9 @@ export default function TablaPosiciones() {
                       <TableHead className="text-center">PG</TableHead>
                       <TableHead className="text-center">PE</TableHead>
                       <TableHead className="text-center">PP</TableHead>
-                      <TableHead className="text-center">GF</TableHead>
-                      <TableHead className="text-center">GC</TableHead>
-                      <TableHead className="text-center">GD</TableHead>
+                      <TableHead className="text-center">{isBasketball ? 'CF' : 'GF'}</TableHead>
+                      <TableHead className="text-center">{isBasketball ? 'CC' : 'GC'}</TableHead>
+                      <TableHead className="text-center">{isBasketball ? 'DC' : 'GD'}</TableHead>
                       <TableHead className="text-center font-bold">PTS</TableHead>
                       <TableHead className="text-center">Fair Play</TableHead>
                     </TableRow>

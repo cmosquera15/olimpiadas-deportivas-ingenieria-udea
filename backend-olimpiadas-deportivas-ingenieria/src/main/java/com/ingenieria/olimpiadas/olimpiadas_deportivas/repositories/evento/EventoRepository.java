@@ -52,4 +52,15 @@ public interface EventoRepository extends JpaRepository<Evento, Integer> {
             and upper(te.nombre) like '%GOL%'
        """)
     Long countGolesByUsuarioInTorneo(Integer torneoId, Integer usuarioId);
+
+    @Query("""
+          select case when count(ev) > 0 then true else false end
+          from Evento ev
+            join ev.tipoEvento te
+            join ev.equipoPorPartido epp
+          where epp.partido.id = :partidoId
+            and epp.equipo.id = :equipoId
+            and te.requiereJugador = false
+       """)
+    boolean existsWoEventForTeamInMatch(Integer partidoId, Integer equipoId);
 }

@@ -98,10 +98,6 @@ public class TablaPosicionesService {
         boolean esBasket = depName.contains("BALONCESTO");
         boolean esFutbol = depName.contains("FUTBOL") || depName.contains("FÚTBOL");
 
-        int ptsWin   = esBasket ? 2 : 3;
-        int ptsDraw  = esBasket ? 0 : 1;
-        int ptsWO    = 0;
-
         for (Partido p : partidos) {
             List<EquiposPorPartido> epps = eppRepository.findByPartidoId(p.getId());
             if (epps.size() != 2) continue;
@@ -130,34 +126,77 @@ public class TablaPosicionesService {
 
             sa.pj.incrementAndGet();
             sb.pj.incrementAndGet();
+            
+            // Count goals/baskets for both sports
             sa.gf.addAndGet(pa);
             sa.gc.addAndGet(pb);
             sb.gf.addAndGet(pb);
             sb.gc.addAndGet(pa);
 
-            String resA = Optional.ofNullable(a.getResultado()).map(Resultado::getNombre).orElse(null);
-            String resB = Optional.ofNullable(b.getResultado()).map(Resultado::getNombre).orElse(null);
-            boolean aWO = resA != null && resA.equalsIgnoreCase("WO");
-            boolean bWO = resB != null && resB.equalsIgnoreCase("WO");
-
-            if (aWO ^ bWO) { // uno solo WO
-                if (aWO) { sa.wo.incrementAndGet(); sa.pp.incrementAndGet(); sb.pg.incrementAndGet(); sb.pts.addAndGet(esBasket ? 2 : 3); }
-                else     { sb.wo.incrementAndGet(); sb.pp.incrementAndGet(); sa.pg.incrementAndGet(); sa.pts.addAndGet(esBasket ? 2 : 3); }
-                continue;
-            }
-
-            if (pa > pb) { sa.pg.incrementAndGet(); sb.pp.incrementAndGet(); sa.pts.addAndGet(ptsWin); }
-            else if (pa < pb) { sb.pg.incrementAndGet(); sa.pp.incrementAndGet(); sb.pts.addAndGet(ptsWin); }
-            else {
-                sa.pe.incrementAndGet();
-                sb.pe.incrementAndGet();
-                sa.pts.addAndGet(ptsDraw);
-                sb.pts.addAndGet(ptsDraw);
-            }
+            // Check if either team has WO event (requiereJugador=false event)
+            boolean aHasWO = eventoRepository.existsWoEventForTeamInMatch(p.getId(), aId);
+            boolean bHasWO = eventoRepository.existsWoEventForTeamInMatch(p.getId(), bId);
 
             if (esBasket) {
+                // Basketball scoring: winner=2pts, normal loser=1pt, WO loser=0pts
+                if (pa > pb) {
+                    sa.pg.incrementAndGet();
+                    sb.pp.incrementAndGet();
+                    sa.pts.addAndGet(2);      // Winner gets 2 points
+                    sb.pts.addAndGet(bHasWO ? 0 : 1);  // Loser gets 1pt unless WO
+                    if (bHasWO) sb.wo.incrementAndGet();
+                } else if (pa < pb) {
+                    sb.pg.incrementAndGet();
+                    sa.pp.incrementAndGet();
+                    sb.pts.addAndGet(2);      // Winner gets 2 points
+                    sa.pts.addAndGet(aHasWO ? 0 : 1);  // Loser gets 1pt unless WO
+                    if (aHasWO) sa.wo.incrementAndGet();
+                } else {
+                    // Tie in basketball (rare but possible)
+                    sa.pe.incrementAndGet();
+                    sb.pe.incrementAndGet();
+                    // No points for draws in basketball
+                }
+
+                // Track first game scores for tiebreaker
                 if (sa.cestasPrimerPartido.get() == 0) sa.cestasPrimerPartido.set(pa);
                 if (sb.cestasPrimerPartido.get() == 0) sb.cestasPrimerPartido.set(pb);
+            } else {
+                // Football scoring: winner=3pts, draw=1pt each, WO=forfeit
+                String resA = Optional.ofNullable(a.getResultado()).map(Resultado::getNombre).orElse(null);
+                String resB = Optional.ofNullable(b.getResultado()).map(Resultado::getNombre).orElse(null);
+                boolean aWO = resA != null && resA.equalsIgnoreCase("WO");
+                boolean bWO = resB != null && resB.equalsIgnoreCase("WO");
+
+                if (aWO ^ bWO) { // uno solo WO
+                    if (aWO) { 
+                        sa.wo.incrementAndGet(); 
+                        sa.pp.incrementAndGet(); 
+                        sb.pg.incrementAndGet(); 
+                        sb.pts.addAndGet(3); 
+                    } else { 
+                        sb.wo.incrementAndGet(); 
+                        sb.pp.incrementAndGet(); 
+                        sa.pg.incrementAndGet(); 
+                        sa.pts.addAndGet(3); 
+                    }
+                    continue;
+                }
+
+                if (pa > pb) { 
+                    sa.pg.incrementAndGet(); 
+                    sb.pp.incrementAndGet(); 
+                    sa.pts.addAndGet(3); 
+                } else if (pa < pb) { 
+                    sb.pg.incrementAndGet(); 
+                    sa.pp.incrementAndGet(); 
+                    sb.pts.addAndGet(3); 
+                } else {
+                    sa.pe.incrementAndGet();
+                    sb.pe.incrementAndGet();
+                    sa.pts.addAndGet(1);
+                    sb.pts.addAndGet(1);
+                }
             }
         }
 
@@ -167,18 +206,18 @@ public class TablaPosicionesService {
         }
 
         Comparator<EquipoPosicionDTO> futbolCmp = Comparator
-                .comparing(EquipoPosicionDTO::fairPlay)             // 1) menor
-                .thenComparing(EquipoPosicionDTO::pg, Comparator.reverseOrder()) // 2)
-                .thenComparing(dto -> dto.gf() - dto.gc(), Comparator.reverseOrder()) // 3) DG
-                .thenComparing(EquipoPosicionDTO::gf, Comparator.reverseOrder()) // 4)
-                .thenComparing(EquipoPosicionDTO::pp)               // 5)
-                .thenComparing(EquipoPosicionDTO::gc);              // 6)
+                .comparing(EquipoPosicionDTO::fairPlay)                                    // 1) Menor promedio Fair Play
+                .thenComparing(EquipoPosicionDTO::pg, Comparator.reverseOrder())          // 2) Mayor número de partidos ganados
+                .thenComparing(dto -> dto.gf() - dto.gc(), Comparator.reverseOrder())     // 3) Mayor diferencia de goles (GD)
+                .thenComparing(EquipoPosicionDTO::gf, Comparator.reverseOrder())          // 4) Mayor número de goles a favor
+                .thenComparing(EquipoPosicionDTO::pp)                                     // 5) Menor cantidad de partidos perdidos
+                .thenComparing(EquipoPosicionDTO::gc);                                    // 6) Menor cantidad de goles en contra
 
         Comparator<EquipoPosicionDTO> basketCmp = Comparator
-                .comparing(EquipoPosicionDTO::fairPlay)             // 1)
-                .thenComparing(EquipoPosicionDTO::pg, Comparator.reverseOrder()) // 2)
-                .thenComparing(EquipoPosicionDTO::gf, Comparator.reverseOrder()) // 3) cestas a favor
-                .thenComparing(dto -> dto.gf() - dto.gc(), Comparator.reverseOrder()); // 4) diff cestas
+                .comparing(EquipoPosicionDTO::fairPlay)                                    // 1) Menor puntaje Fair Play
+                .thenComparing(EquipoPosicionDTO::pg, Comparator.reverseOrder())          // 2) Mayor número de partidos ganados
+                .thenComparing(EquipoPosicionDTO::gf, Comparator.reverseOrder())          // 3) Mayor número de cestas a favor
+                .thenComparing(dto -> dto.gf() - dto.gc(), Comparator.reverseOrder());    // 4) Mayor diferencia de cestas
 
         Map<Integer, Integer> primerJuegoCestas = map.values().stream()
                 .collect(Collectors.toMap(s -> s.equipoId, s -> s.cestasPrimerPartido.get()));
